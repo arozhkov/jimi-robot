@@ -2,7 +2,7 @@ JMX collector, new one. Highly inspired by my previous not open-sourced works, a
 
 
 ## Ideas behind this project
-It's not that difficult to collect JMX counters, the difficulty is to make configuration and maintenance of the collector simple. I'm not talking about getting HeepFreeSize from one or tree servers. _Having said that, it's even harder to make good use of collected data._
+It's not that difficult to collect JMX counters, the difficulty is to make configuration, maintenance and integration with other tools simple. _Having said that, it's even harder to make good use of collected data._
 
 ## Features
 
@@ -57,7 +57,8 @@ __YAML:__ read and understand syntax
 
 ## _metrics.yaml_
 
-This file is a library of all metrics you can collect from your servers. Metrics are split in groups and you can assign these groups to the sources. Please bare in mind that collection process is not initiated by the presence of the metric in this file.
+This file is a library of all metrics you can collect from your servers. Metrics are split in groups and you can assign these groups to the sources. Please bare in mind that collection process is not initiated by the presence of the metric in this file.  
+_Here is just an example of `metrics.yaml`, of course you can define other groups and add as much metrics as you need._
 
     metrics:
 
