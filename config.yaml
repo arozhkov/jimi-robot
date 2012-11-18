@@ -1,0 +1,19 @@
+writer: !console
+  format: notImplemented
+  
+sources:
+
+  - !jvm
+    host  : 192.168.0.35
+    port  : 9010
+    metricsLists:
+      - MemoryPools
+      - Memory
+      
+  - !weblogic
+    host  : 192.168.0.35
+    port  : 7001
+    username: weblogic
+    password: weblogic01
+    metricsLists:
+      - Memory
