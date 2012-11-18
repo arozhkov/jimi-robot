@@ -123,16 +123,16 @@ Only groups of metrics which are mentioned in `metricsLists` will be collected f
         username: weblogic
         password: weblogic01
         metricsLists:
-          - heap
-          - network
+          - Memory
+          - Threading
       - !weblogic
         host  :   192.168.0.35
         port  :   7002
         username: weblogic
         password: weblogic01
         metricsLists:
-          - heap
-          - server
+          - Memory
+          - MemoryPools
 
 ## Usage
 
