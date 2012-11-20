@@ -38,7 +38,7 @@ Available writer's destinations:
 
 __Before you begin:__ Although code is a mess, it does what it is supposed to do.  I'm currently working on the improvements.
 
-1. Download zip file. It contains all needed dependences except Weblogic client jars.  
+1. Download [`jimi-<version>.zip`](https://github.com/arozhkov/jimi-robot/downloads) file. It contains all needed dependences except Weblogic client jars.  
 1. Unzip it to the folder that will be your `JIMI_HOME`.  
 1. Depending on your OS update `run.bat` or `run.sh` with right values for `JIMI_HOME` and `JAVA_HOME`. Or just define these variables in your environment.  
 
