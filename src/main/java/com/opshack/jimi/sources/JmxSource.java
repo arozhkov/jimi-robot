@@ -294,6 +294,13 @@ public abstract class JmxSource implements Runnable{
 								log.error(JmxSource.this + " " + e1.getMessage());
 							}
 						}
+						
+						// TODO performance: data storage overload
+						try {
+							Thread.sleep(10);
+						} catch (InterruptedException e) {
+							log.error(JmxSource.this + " " + e.getClass());
+						}
 					}
 				}
 			}
@@ -309,7 +316,9 @@ public abstract class JmxSource implements Runnable{
 		this.writer = writer;
 		this.metricGroups = metrics;
 		
-		metricExecutor = Executors.newScheduledThreadPool(4);
+		//TODO have to manage CPU overload
+		//metricExecutor = Executors.newScheduledThreadPool(4);
+		metricExecutor = Executors.newSingleThreadScheduledExecutor();
 		this.setBroken(false);
 
 		return true;

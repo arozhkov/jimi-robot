@@ -28,7 +28,7 @@ public class Jimi {
 	private ArrayList<JmxSource> sources;
 	private MetricGroups metricGroups;
 	
-	
+
 	public void start() throws Exception {
 		
 		if (writer.init()) { 				// setup writer 
