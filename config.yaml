@@ -7,7 +7,6 @@ sources:
     host  : 192.168.0.35
     port  : 9010
     metricsLists:
-      - MemoryPools
       - Memory
       
   - !weblogic

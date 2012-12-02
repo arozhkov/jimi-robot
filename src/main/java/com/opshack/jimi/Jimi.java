@@ -17,6 +17,7 @@ import com.opshack.jimi.sources.Jvm;
 import com.opshack.jimi.sources.Weblogic;
 import com.opshack.jimi.sources.WeblogicDomain;
 import com.opshack.jimi.writers.ConsoleWriter;
+import com.opshack.jimi.writers.GraphiteTCPWriter;
 import com.opshack.jimi.writers.GraphiteWriter;
 import com.opshack.jimi.writers.Writer;
 
@@ -139,6 +140,7 @@ public class Jimi {
 	        configConstructor.addTypeDescription(new TypeDescription(WeblogicDomain.class, "!weblogicDomain"));
 	        configConstructor.addTypeDescription(new TypeDescription(Jvm.class, "!jvm"));
 	        configConstructor.addTypeDescription(new TypeDescription(GraphiteWriter.class, "!graphite"));
+	        configConstructor.addTypeDescription(new TypeDescription(GraphiteTCPWriter.class, "!graphiteTCP"));
 	        configConstructor.addTypeDescription(new TypeDescription(ConsoleWriter.class, "!console"));
 			Yaml configYaml = new Yaml(configConstructor);
 	        jimi = (Jimi) configYaml.load(configFile);
