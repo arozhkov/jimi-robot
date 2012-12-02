@@ -8,6 +8,8 @@ sources:
     port  : 9010
     metricsLists:
       - Memory
+      - MemoryPools
+      - Threading
       
   - !weblogic
     host  : 192.168.0.35
@@ -16,3 +18,7 @@ sources:
     password: weblogic01
     metricsLists:
       - Memory
+      - MemoryPools
+      - Threading
+      
+executorThreadPoolSize: 4

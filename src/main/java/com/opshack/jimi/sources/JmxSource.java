@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.AttributeNotFoundException;
@@ -45,6 +46,9 @@ public abstract class JmxSource implements Runnable{
 	
 	private MBeanServerConnection mbeanServerConnection;
 	private ScheduledExecutorService metricExecutor;
+	
+	private HashSet <ScheduledFuture<?>> tasks;
+	
 	
 	private class JmxMetric implements Runnable {
 
@@ -275,10 +279,12 @@ public abstract class JmxSource implements Runnable{
 						try {
 							
 							JmxMetric jmxMetric = new JmxMetric(metric);
-							metricExecutor.scheduleAtFixedRate(jmxMetric,
+							tasks.add( 
+									metricExecutor.scheduleAtFixedRate(jmxMetric,
 									0,
 									Long.valueOf((Integer) metric.get("rate")), 
-									TimeUnit.SECONDS);
+									TimeUnit.SECONDS)
+							);
 							
 						} catch (Exception e) {
 							log.error(JmxSource.this + " " + e.getMessage());
@@ -294,39 +300,39 @@ public abstract class JmxSource implements Runnable{
 								log.error(JmxSource.this + " " + e1.getMessage());
 							}
 						}
-						
-						// TODO performance: data storage overload
-						try {
-							Thread.sleep(10);
-						} catch (InterruptedException e) {
-							log.error(JmxSource.this + " " + e.getClass());
-						}
 					}
 				}
 			}
 		}
+		
+		log.debug(this + " terminates");
 	}
 	
 	
 	// TODO make object validation during "init" and return real status of
 	// execution
-	public boolean init(Writer writer, MetricGroups metrics) {
+	public boolean init(Writer writer, MetricGroups metrics, ScheduledExecutorService taskExecutor) {
 
 		log.info("Init " + this);
 		this.writer = writer;
 		this.metricGroups = metrics;
 		
-		//TODO have to manage CPU overload
-		//metricExecutor = Executors.newScheduledThreadPool(4);
-		metricExecutor = Executors.newSingleThreadScheduledExecutor();
+		metricExecutor = taskExecutor;
 		this.setBroken(false);
+		
+		tasks = new HashSet<ScheduledFuture<?>>();
 
 		return true;
 	}
 
 	public void shutdown() {
 	
-		this.metricExecutor.shutdownNow();
+		for (ScheduledFuture<?> task: tasks) {
+			task.cancel(true);
+			log.info("Cancel task, result is " + task.isCancelled());
+		}
+
+		//this.metricExecutor.shutdownNow();
 		this.mbeanServerConnection = null;
 	}
 

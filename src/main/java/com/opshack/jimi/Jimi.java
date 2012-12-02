@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +31,14 @@ public class Jimi {
 	private ArrayList<JmxSource> sources;
 	private MetricGroups metricGroups;
 	
+	private int executorThreadPoolSize = 2;
+	private ScheduledExecutorService taskExecutor;
+	
 
 	public void start() throws Exception {
+		
+		log.info("Shared executor size is: " + executorThreadPoolSize);
+		taskExecutor = Executors.newScheduledThreadPool(executorThreadPoolSize);
 		
 		if (writer.init()) { 				// setup writer 
 			new Thread(writer).start(); 	// start writer
@@ -40,11 +48,11 @@ public class Jimi {
 			System.exit(1);	
 		}
 		
-		compileSources();
+		compileSources();					// process proxy sources
 		
 		boolean startedSources = false;		// is there any running source?
 		for (JmxSource source: sources) {
-			if (source.init(writer, metricGroups)) {
+			if (source.init(writer, metricGroups, taskExecutor)) {
 				new Thread(source).start();
 				startedSources = true;		// yes
 			}
@@ -65,7 +73,7 @@ public class Jimi {
 						log.warn(source + " is broken.");
 						source.shutdown();			// shutdown, cleanup if broken
 						
-						if (source.init(writer, metricGroups)) { 
+						if (source.init(writer, metricGroups, taskExecutor)) { 
 							new Thread(source).start(); 	// restart
 						}
 					}
@@ -95,6 +103,7 @@ public class Jimi {
 		}
 	}
 	
+
 	private void compileSources() throws Exception {
 		
 		ArrayList<JmxSource> compiledSources = new ArrayList<JmxSource>();
@@ -189,5 +198,13 @@ public class Jimi {
 	}
 	public void setMetricGroups(MetricGroups metricGroups) {
 		this.metricGroups = metricGroups;
+	}
+	
+	public synchronized int getExecutorThreadPoolSize() {
+		return executorThreadPoolSize;
+	}
+
+	public synchronized void setExecutorThreadPoolSize(int executorThreadPoolSize) {
+		this.executorThreadPoolSize = executorThreadPoolSize;
 	}
 }
