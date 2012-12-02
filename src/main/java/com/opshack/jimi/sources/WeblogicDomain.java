@@ -108,6 +108,10 @@ public class WeblogicDomain extends JmxSource {
 				
 				source.setUsername(this.getUsername());
 				source.setPassword(this.getPassword());
+				
+				source.setPrefix(this.getPrefix());
+				source.setSuffix(this.getSuffix());
+				
 				source.setMetricsLists(this.getMetricsLists());
 				
 				sources.add(source);

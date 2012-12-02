@@ -17,7 +17,6 @@ public class GraphiteTCPWriter extends Writer {
 	
 	private String host;
 	private int port;
-	private String prefix;
 	
 	InetAddress address;
 	private DatagramSocket datagramSocket;
@@ -47,7 +46,7 @@ public class GraphiteTCPWriter extends Writer {
 	@Override
 	public void write(Event event) throws Exception {
 		
-		String stringMessage = this.prefix + "." + event.getSource() + "." + event.getLabel()
+		String stringMessage = event.getSource() + "." + event.getLabel()
 				+ " " + event.getValue() 
 				+ " " + event.getTs()/1000; // divide by 1000 to get seconds
 		
@@ -80,13 +79,5 @@ public class GraphiteTCPWriter extends Writer {
 
 	public void setPort(int port) {
 		this.port = port;
-	}
-
-	public String getPrefix() {
-		return prefix;
-	}
-
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
 	}
 }

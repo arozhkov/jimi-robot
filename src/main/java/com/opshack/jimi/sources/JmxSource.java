@@ -36,6 +36,8 @@ public abstract class JmxSource implements Runnable{
 	private int port;
 	private String username;
 	private String password;
+	private String prefix;
+	private String suffix; 
 	private List<String> metricGroupsList;
 	
 	private Writer writer;
@@ -49,6 +51,7 @@ public abstract class JmxSource implements Runnable{
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
+	private String label; 
 	
 	private class JmxMetric implements Runnable {
 
@@ -313,6 +316,21 @@ public abstract class JmxSource implements Runnable{
 	// execution
 	public boolean init(Writer writer, MetricGroups metrics, ScheduledExecutorService taskExecutor) {
 
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		if (this.prefix != null) {
+			buffer.append(prefix + ".");
+		}
+		
+		buffer.append(host.replaceAll("\\.", "_") + "_" + port);
+		
+		if (this.suffix != null) {
+			buffer.append("." + suffix);
+		}
+		
+		this.setLabel(buffer.toString());
+		
 		log.info("Init " + this);
 		this.writer = writer;
 		this.metricGroups = metrics;
@@ -347,7 +365,7 @@ public abstract class JmxSource implements Runnable{
 	}
 	
 	public String toString() {
-		return host.replaceAll("\\.", "_") + "_" + port;
+		return this.getLabel();
 	}
 	
 
@@ -401,6 +419,26 @@ public abstract class JmxSource implements Runnable{
 	public synchronized void setDefinitlyBroken(boolean definitlyBroken) {
 		this.definitlyBroken = definitlyBroken;
 	}
-	
+
+	public synchronized String getPrefix() {
+		return prefix;
+	}
+	public synchronized void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public synchronized String getSuffix() {
+		return suffix;
+	}
+	public synchronized void setSuffix(String suffix) {
+		this.suffix = suffix;
+	}
+
+	public synchronized String getLabel() {
+		return label;
+	}
+	public synchronized void setLabel(String label) {
+		this.label = label;
+	}	
 	
 }
