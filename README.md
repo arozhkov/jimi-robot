@@ -22,25 +22,13 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 * _Writer_ – component of a program responsible for writing or sending events to external storage/analysis system. 
 
 
-## How it works
-
-Jimi starts one thread per source then each of these threads initializes a scheduled execute queue where it puts tasks which are gathering values. Each received value with its context, the event,  goes to the writer's queue from where it is published to external storage/analysis system.  
-
-Available writer's destinations: 
-* Console
-* Graphite
-* statsd _Not implemented_
-* Zabbix _Not implemented_
-* Nagios _Not implemented_
-
-
 ## Installation
 
 __Before you begin:__ Although code is a mess, it does what it is supposed to do.  I'm currently working on the improvements.
 
 1. Download [`jimi-<version>.zip`](https://github.com/arozhkov/jimi-robot/downloads) file. It contains all needed dependences except Weblogic client jars.  
 1. Unzip it to the folder that will be your `JIMI_HOME`.  
-1. Depending on your OS update `run.bat` or `run.sh` with right values for `JIMI_HOME` and `JAVA_HOME`. Or just define these variables in your environment.  
+1. Depending on your OS update `run.bat` or `run.sh` with right values for `JIMI_HOME`.
 
 If you plan to work with Weblogic servers, set `WLS_LIBS` variable with a path to the folder where `wljmxclient.jar` and `wlclient.jar` should be found.  It is important to have both of them.
 
@@ -115,7 +103,6 @@ Only groups of metrics which are mentioned in `metricsLists` will be collected f
     writer: !graphite
       host: localhost
       port: 2003
-      prefix: wls
 
     sources:
       - !weblogic
@@ -123,6 +110,7 @@ Only groups of metrics which are mentioned in `metricsLists` will be collected f
         port:     7001
         username: weblogic
         password: weblogic01
+        prefix: wls
         metricsLists:
           - Memory
           - Threading
@@ -131,6 +119,7 @@ Only groups of metrics which are mentioned in `metricsLists` will be collected f
         port  :   7002
         username: weblogic
         password: weblogic01
+        prefix: wls
         metricsLists:
           - Memory
           - MemoryPools
