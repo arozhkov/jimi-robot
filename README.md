@@ -123,6 +123,8 @@ Only groups of metrics which are mentioned in `metricsLists` will be collected f
         metricsLists:
           - Memory
           - MemoryPools
+          
+    executorThreadPoolSize: 2
 
 ## Usage
 
