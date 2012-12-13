@@ -100,6 +100,9 @@ This file starts with definition of a writer that will be used for all sources d
 
 Only groups of metrics which are mentioned in `metricsLists` will be collected from the sources and processed by the writer.
 
+The last element of this file is `executorThreadPoolSize` property. It defines the number of threads that will collect metrics.
+
+
     writer: !graphite
       host: localhost
       port: 2003
