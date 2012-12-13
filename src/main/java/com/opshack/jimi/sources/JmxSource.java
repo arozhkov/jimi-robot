@@ -358,7 +358,7 @@ public abstract class JmxSource implements Runnable{
 	
 		for (ScheduledFuture<?> task: tasks) {
 			task.cancel(true);
-			log.info("Cancel task, result is " + task.isCancelled());
+			log.debug("Cancel task, result is " + task.isCancelled());
 		}
 
 		//this.metricExecutor.shutdownNow();
