@@ -1,6 +1,8 @@
 JMX collector, new one. Highly inspired by my previous not open-sourced works, articles from [monitoring sucks](http://monitoring.no.de/) and jmxtrans project.
 
 
+![jimi](https://raw.github.com/arozhkov/jimi-robot/master/Jimi.png)
+
 ## Ideas behind this project
 It's not that difficult to collect JMX counters, the difficulty is to make configuration, maintenance and integration with other tools simple. _Having said that, it's even harder to make good use of collected data._
 
@@ -27,8 +29,8 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 __Before you begin:__ Although code is a mess, it does what it is supposed to do.  I'm currently working on the improvements.
 
 1. Download [`jimi-<version>.zip`](https://github.com/arozhkov/jimi-robot/downloads) file. It contains all needed dependences except Weblogic client jars.  
-1. Unzip it to the folder that will be your `JIMI_HOME`.  
-1. Depending on your OS update `run.bat` or `run.sh` with right values for `JIMI_HOME`.
+1. Unzip archive. `jimi` folder  will be your `JIMI_HOME`.  
+1. Depending on your OS update `run.bat` or `run.sh` with right value for `JIMI_HOME`.
 
 If you plan to work with Weblogic servers, set `WLS_LIBS` variable with a path to the folder where `wljmxclient.jar` and `wlclient.jar` should be found.  It is important to have both of them.
 
