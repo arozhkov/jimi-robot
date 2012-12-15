@@ -20,7 +20,7 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 * _Source_ – abstract representation of a source JMX server on a program level.
 * _Metric_ – definition of a measure to be collected from the source.
 * _Value_ – real value gathered from the source.
-* _Event_ – the value within it's context: source, metric, timestamp.
+* _Event_ – the value within its context: source, metric, timestamp.
 * _Writer_ – component of a program responsible for writing or sending events to external storage/analysis system. 
 
 
