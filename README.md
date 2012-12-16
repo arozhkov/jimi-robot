@@ -28,11 +28,11 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 
 __Before you begin:__ Although code is a mess, it does what it is supposed to do.  I'm currently working on the improvements.
 
-1. Download [`jimi-<version>.zip`](http://bit.ly/TnY4NS) file. It contains all needed dependences except Weblogic client jars.  
-1. Unzip archive. `jimi` folder  will be your `JIMI_HOME`.  
-1. Depending on your OS update `run.bat` or `run.sh` with right value for `JIMI_HOME`.
+1. Download [Jimi](http://bit.ly/TnY4NS). Archive contains all needed dependences except Weblogic client jars.  
+1. Unzip archive somewhere on your server.
+1. Open `jimi/run.sh` or `jimi\run.bat` and set `JIMI_HOME` variable with a path to `jimi` directory.
 
-If you plan to work with Weblogic servers, set `WLS_LIBS` variable with a path to the folder where `wljmxclient.jar` and `wlclient.jar` should be found.  It is important to have both of them.
+If you plan to work with Weblogic servers, set `WLS_LIBS` variable with a path to the folder where `wljmxclient.jar` and `wlclient.jar` should be found.  It's important to have both of them.
 
 
 ## Configuration
