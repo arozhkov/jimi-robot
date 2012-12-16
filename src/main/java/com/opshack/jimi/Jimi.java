@@ -71,7 +71,7 @@ public class Jimi {
 					
 					if (source.isBroken()) { 		// check source state
 						log.warn(source + " is broken.");
-						source.shutdown();			// shutdown, cleanup if broken
+						source.shutdown();			// shutdown and cleanup if broken
 						
 						if (source.init(writer, metricGroups, taskExecutor)) { 
 							new Thread(source).start(); 	// restart
@@ -95,7 +95,7 @@ public class Jimi {
 			    }
 				counter++;
 				if (counter == 300) {
-					log.info("Jimi's running well.");
+					log.info("Jimi's running well. Sources count: " + sources.size());
 					counter = 0;
 				}
 			}
@@ -160,7 +160,7 @@ public class Jimi {
 	        
 		} catch (FileNotFoundException e) {
 			
-			log.error("FileNotFoundException occured. Please check configuration file's paths.");
+			log.error("FileNotFoundException occured. Please check configuration file path.");
 			e.printStackTrace();
 			System.exit(1);
 			
@@ -169,7 +169,18 @@ public class Jimi {
 			log.error(e.getClass() + " occured. Please check configuration files.");
 			e.printStackTrace();
 			System.exit(1);
+		
+		} finally { 
+			
+			if (configFile != null) {
+				configFile.close();
+			}
+			
+			if (metricsFile != null) {
+				metricsFile.close();
+			}
 		}
+		
  
 		if (jimi != null && jimi.getMetricGroups() != null) {
 	

@@ -21,9 +21,10 @@ public class Weblogic extends JmxSource {
 	private JMXConnector jmxConnector;
 	private MBeanServerConnection mbeanServerConnection;
 	
+	
 	public synchronized MBeanServerConnection getMbeanServerConnection() throws InterruptedException {
 		
-		log.info(this + " connect");
+		log.info(this + " connecting");
 		if (!super.isConnected()) {
 			
 			String protocol = "t3";

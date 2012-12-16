@@ -115,16 +115,17 @@ The last element of this file is `executorThreadPoolSize` property. It defines t
         port:     7001
         username: weblogic
         password: weblogic01
-        prefix: wls
+        prefix:   wls
         metricsLists:
           - Memory
           - Threading
+          
       - !weblogic
         host  :   192.168.0.35
         port  :   7002
         username: weblogic
         password: weblogic01
-        prefix: wls
+        prefix:   wls
         metricsLists:
           - Memory
           - MemoryPools

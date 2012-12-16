@@ -26,6 +26,7 @@ public class WeblogicDomain extends JmxSource {
 	private static JMXConnector connector;
 	private static final ObjectName service;
 	
+	
 	static {
 		try {
 			service = new ObjectName(
@@ -34,6 +35,7 @@ public class WeblogicDomain extends JmxSource {
 			throw new AssertionError(e.getMessage());
 		}
 	}
+	
 	
 	@Override
 	public MBeanServerConnection getMbeanServerConnection()
@@ -78,7 +80,7 @@ public class WeblogicDomain extends JmxSource {
 	
 	public static ObjectName[] getServerRuntimes() throws Exception {
 	      return (ObjectName[]) connection.getAttribute(service, "ServerRuntimes");
-	   }
+	}
 	
 	public ArrayList<JmxSource> getSources() throws Exception {
 		
@@ -131,7 +133,4 @@ public class WeblogicDomain extends JmxSource {
 	public synchronized void setFilter(String filter) {
 		this.filter = filter;
 	}
-
-	
-	
 }

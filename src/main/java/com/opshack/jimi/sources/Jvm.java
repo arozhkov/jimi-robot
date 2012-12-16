@@ -22,7 +22,7 @@ public class Jvm  extends JmxSource {
 	@Override
 	public MBeanServerConnection getMbeanServerConnection()	throws InterruptedException {
 
-		log.info(this + " connect");
+		log.info(this + " connecting");
 		if (!super.isConnected()) {
 
 			JMXServiceURL serviceURL = null;
@@ -54,7 +54,6 @@ public class Jvm  extends JmxSource {
 				this.setBroken(true);
 				throw new InterruptedException();	
 			}
-
 		}
 
 		return this.mbeanServerConnection;

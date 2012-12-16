@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -59,11 +58,11 @@ public abstract class JmxSource implements Runnable{
 
 		private Map metric;
 		private ObjectName objectName;
-		private HashMap<String, ObjectInstance> beans = new HashMap();
+		private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
 		
 		JmxMetric(Map metric) throws IOException {
 
-			log.debug(JmxSource.this + " " + metric + " cteat metric");
+			log.debug(JmxSource.this + " " + metric + " creat metric");
 			this.metric = metric;
 			try {
 				this.objectName = new ObjectName((String) this.metric.get("mbean"));
@@ -95,11 +94,17 @@ public abstract class JmxSource implements Runnable{
 				Set<ObjectInstance> beans = new HashSet<ObjectInstance>();
 				
 				if (this.objectName.isPattern()) {
+					
 					beans.addAll(mbeanServerConnection.queryMBeans(this.objectName, null));
+					
 				} else {
+					
 					try {
+						
 						beans.add(mbeanServerConnection.getObjectInstance(this.objectName));
+						
 					} catch (InstanceNotFoundException e) {
+						
 						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
 
 						if (log.isDebugEnabled()) {
@@ -137,7 +142,10 @@ public abstract class JmxSource implements Runnable{
 
 			log.debug("Name : " + name + "-" + objectName);
 			
-			if (name == null) return label;
+			if (name == null) {
+				return label.replace("$Name", "Undefined");
+			}
+			
 			return label.replace("$Name", name.replaceAll("\\W", ""));
 		}
 		
@@ -191,6 +199,7 @@ public abstract class JmxSource implements Runnable{
 									log.warn(JmxSource.this + " " + bean.getObjectName() + 
 											" attr is of CompositeData type, you have to provide subattr parameter.");
 								}
+					
 							} else if (value instanceof Long || value instanceof Integer) {
 	
 								JmxSource.this.writer.write(
@@ -201,6 +210,7 @@ public abstract class JmxSource implements Runnable{
 										" got UNSUPPORTED value " + String.valueOf(value) );
 							}
 						} 
+			
 					} catch (AttributeNotFoundException e) {      
 						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
 
@@ -234,7 +244,7 @@ public abstract class JmxSource implements Runnable{
 						if (log.isDebugEnabled()) {
 							e.printStackTrace();
 						}
-
+						
 					} catch (Exception e) {
 						log.error(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
 
@@ -271,7 +281,11 @@ public abstract class JmxSource implements Runnable{
 		} catch (InterruptedException e) {
 			
 			log.error(JmxSource.this + " " + e.getMessage());
-			e.printStackTrace();
+	
+			if (log.isDebugEnabled()) {
+				e.printStackTrace();
+			}
+			
 			this.setBroken(true);
 			
 			try {
