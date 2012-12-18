@@ -26,7 +26,7 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 
 ## Installation
 
-__Before you begin:__ Although code is a mess, it does what it is supposed to do.  I'm currently working on the improvements.
+__Before you begin:__ Although code is a mess, application is stable and does what it is supposed to do.  I'm currently working on the improvements.
 
 1. Download [Jimi](http://bit.ly/TnY4NS). Archive contains all needed dependences except Weblogic client jars.  
 1. Unzip archive somewhere on your server.
