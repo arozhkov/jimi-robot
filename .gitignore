@@ -22,3 +22,5 @@ Icon?
 ehthumbs.db
 Thumbs.db
 /jimi.log
+/tutorial-conf.yaml
+/tutorial-metrics.yaml
