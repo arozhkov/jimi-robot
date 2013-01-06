@@ -1,7 +1,7 @@
 JMX collector, new one. Highly inspired by my previous not open-sourced works, articles from [monitoring sucks](http://monitoring.no.de/) and jmxtrans project.
 
 
-![jimi](https://raw.github.com/arozhkov/jimi-robot/master/Jimi.png)
+![jimi](https://raw.github.com/arozhkov/jimi-robot/master/img/Jimi.png)
 
 ## Ideas behind this project
 It's not that difficult to collect JMX counters, the difficulty is to make configuration, maintenance and integration with other tools simple. _Having said that, it's even harder to make good use of collected data._
@@ -15,7 +15,7 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 * Compatible with JVM platform JMX server and Weblogic JMX server. _True._
 * Collect simple numeric attributes from mbeans and combined data attributes. _True._
 
-## Definitions
+## Concepts
 
 * _Source_ – abstract representation of a source JMX server on a program level.
 * _Metric_ – definition of a measure to be collected from the source.
@@ -37,7 +37,7 @@ If you plan to work with Weblogic servers, set `WLS_LIBS` variable with a path t
 
 ## Configuration
 
-There are two configuration files, one for writer and sources - `config.yaml`, another one for metrics – `metrics.yaml`. You can name these files as you want but here we will use highlighted names for consistency.
+There are two configuration files, the first for _writer_ and _sources_ - `config.yaml`, the second for _metrics_ – `metrics.yaml`. You can name these files as you want but here we will use highlighted names for consistency.
 
 __YAML:__ read and understand syntax
 > [wikipedia](http://en.wikipedia.org/wiki/YAML)  
