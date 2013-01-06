@@ -1,4 +1,4 @@
-JMX collector, new one. Highly inspired by my previous not open-sourced works, articles from [monitoring sucks](http://monitoring.no.de/) and jmxtrans project.
+JMX collector. Highly inspired by my previous not open-sourced works, articles from [monitoring sucks](http://monitoring.no.de/) and jmxtrans project.
 
 
 ![jimi](https://raw.github.com/arozhkov/jimi-robot/master/img/Jimi.png)
@@ -98,7 +98,7 @@ _Here is just an example of `metrics.yaml`, of course you can define other group
 
 ## _config.yaml_
 
-This file starts with definition of a writer that will be used for all sources defined below. Definitions of the writer and sources starts with a tag referring to the object's class. Each class needs it's own set of properties to get work done. Properties' names are self-explanatory most of the time. 
+This file starts with definition of a writer that will be used for all sources defined below. Definitions of the writer and sources starts with a tag referring to the object's class. Each class needs its own set of properties to get work done. Properties' names are self-explanatory most of the time. 
 
 Only groups of metrics which are mentioned in `metricsLists` will be collected from the sources and processed by the writer.
 
@@ -135,6 +135,12 @@ The last element of this file is `executorThreadPoolSize` property. It defines t
 ## Usage
 
     run.sh path/to/config.yaml path/to/metrics.yaml
+    
+## Yes, you can help
+
+* Let me know that you use Jimi
+* Report bugs
+* Correct my English :)
 
 
 ## [Find more information on Jimi's wiki](https://github.com/arozhkov/jimi-robot/wiki)
