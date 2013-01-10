@@ -10,7 +10,7 @@ It's not that difficult to collect JMX counters, the difficulty is to create a t
 * Easy to setup and configure. _I think so._
 * Light. _Well RAM is so cheap nowadays._
 * Not intrusive. _As much as RMI could be._
-* Integration with third-party tools. _?_
+* Integration with third-party tools. _Graphite_
 * Compatible with the JVM platform JMX server and Weblogic JMX server. _True._
 * Collect simple numeric attributes from mbeans and combined data attributes. _True._
 
