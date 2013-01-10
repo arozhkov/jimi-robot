@@ -1,10 +1,9 @@
-JMX collector. Highly inspired by my previous not open-sourced works, articles from [monitoring sucks](http://monitoring.no.de/) and jmxtrans project.
-
+Jimi is highly inspired by my previous non open-source works, articles from [monitoring sucks](http://monitoring.no.de/) and the jmxtrans project.
 
 ![jimi](https://raw.github.com/arozhkov/jimi-robot/master/img/Jimi.png)
 
 ## Ideas behind this project
-It's not that difficult to collect JMX counters, the difficulty is to make configuration, maintenance and integration with other tools simple. _Having said that, it's even harder to make good use of collected data._
+It's not that difficult to collect JMX counters, the difficulty is to create a tool easy to configure, maintain and integrate with other applications. _Having said that, it's even harder to make good use of collected data._
 
 ## Features
 
@@ -12,7 +11,7 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 * Light. _Well RAM is so cheap nowadays._
 * Not intrusive. _As much as RMI could be._
 * Integration with third-party tools. _?_
-* Compatible with JVM platform JMX server and Weblogic JMX server. _True._
+* Compatible with the JVM platform JMX server and Weblogic JMX server. _True._
 * Collect simple numeric attributes from mbeans and combined data attributes. _True._
 
 ## Concepts
@@ -26,18 +25,18 @@ It's not that difficult to collect JMX counters, the difficulty is to make confi
 
 ## Installation
 
-__Before you begin:__ Although code is a mess, application is stable and does what it is supposed to do.  I'm currently working on the improvements.
+__Before you begin:__ although the code is a mess, the application is stable and does what it is supposed to do.  I'm currently working on improvements.
 
-1. Download [Jimi](http://bit.ly/TnY4NS). Archive contains all needed dependences except Weblogic client jars.  
+1. Download [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic client jars.  
 1. Unzip archive somewhere on your server.
-1. Open `jimi/run.sh` or `jimi\run.bat` and set `JIMI_HOME` variable with a path to `jimi` directory.
+1. Open `jimi/run.sh` or `jimi\run.bat` and set `JIMI_HOME` variable with a path to the `jimi` directory.
 
 If you plan to work with Weblogic servers, set `WLS_LIBS` variable with a path to the folder where `wljmxclient.jar` and `wlclient.jar` should be found.  It's important to have both of them.
 
 
 ## Configuration
 
-There are two configuration files, the first for _writer_ and _sources_ - `config.yaml`, the second for _metrics_ – `metrics.yaml`. You can name these files as you want but here we will use highlighted names for consistency.
+There are two configuration files, the first for _writer_ and _sources_ - `config.yaml`, the second for _metrics_ – `metrics.yaml`. You can name these files as you want, but here we will use highlighted names for consistency.
 
 __YAML:__ read and understand syntax
 > [wikipedia](http://en.wikipedia.org/wiki/YAML)  
@@ -47,8 +46,8 @@ __YAML:__ read and understand syntax
 
 ## _metrics.yaml_
 
-This file is a library of all metrics you can collect from your servers. Metrics are split in groups and you can assign these groups to the sources. Please bare in mind that collection process is not initiated by the presence of the metric in this file.  
-_Here is just an example of `metrics.yaml`, of course you can define other groups and add as much metrics as you need._
+This file is a library of all metrics that you can collect from your servers. Metrics are split into groups and you can assign these groups to the sources. Please bear in mind that the collection process is not initiated by the presence of the metric in this file.
+_Here is just an example of `metrics.yaml`, of course you can define other groups and add as many metrics as you need._
 
     metrics:
 
@@ -98,7 +97,7 @@ _Here is just an example of `metrics.yaml`, of course you can define other group
 
 ## _config.yaml_
 
-This file starts with definition of a writer that will be used for all sources defined below. Definitions of the writer and sources starts with a tag referring to the object's class. Each class needs its own set of properties to get work done. Properties' names are self-explanatory most of the time. 
+This file starts with the definition of a writer that will be used for all sources defined below. Definitions of the writer and sources start with a tag referring to the object's class. Each class needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. 
 
 Only groups of metrics which are mentioned in `metricsLists` will be collected from the sources and processed by the writer.
 
@@ -138,8 +137,9 @@ The last element of this file is `executorThreadPoolSize` property. It defines t
     
 ## Yes, you can help
 
-* Let me know that you use Jimi
+* Let me know if you use Jimi
 * Report bugs
+* Share metrics definitions
 * Correct my English :)
 
 
