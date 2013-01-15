@@ -24,7 +24,6 @@ public class Weblogic extends JmxSource {
 	
 	public synchronized MBeanServerConnection getMbeanServerConnection() throws InterruptedException {
 		
-		log.info(this + " connecting");
 		if (!super.isConnected()) {
 			
 			String protocol = "t3";
@@ -57,15 +56,23 @@ public class Weblogic extends JmxSource {
 
 			} catch (IOException e) {
 				
-				log.error(this + " IO Exception : " + protocol + "://" + this.getHost() + ":"  + this.getPort() + mserverURL);
-				
 				Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
 				
 				this.setBroken(true);
-				throw new InterruptedException();	
+				throw new InterruptedException("IO Exception occurred during connection to JMX server");
+				
+			} catch (Exception ee) {
+				
+				ee.printStackTrace();
+				
+				Thread.sleep(60000); // sleep 60 seconds then mark thread as broken and interrupt it
+				
+				this.setBroken(true);
+				throw new InterruptedException("Non-IO Exception occurred during connection to JMX server");
 			}
 		}
 		
+		log.info(this + " connected");
 		return this.mbeanServerConnection;
 		
 	}

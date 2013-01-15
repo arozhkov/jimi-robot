@@ -254,26 +254,20 @@ public abstract class JmxSource implements Runnable{
 
 						JmxSource.this.setBroken(true); // source must be shutdown
 
-						try {
-							throw new InterruptedException("after " + e.getMessage());
-						} catch (InterruptedException e1) {
-							log.error(JmxSource.this + " " + this.objectName + " " + e1.getMessage());
-						}
-
 					}
-
 				}
+				
 			} else {
+				
 				log.error(JmxSource.this + " is not connected");
+				JmxSource.this.setBroken(true); // source must be shutdown
+				
 			}
-
 		} 
 	}
 		
 	
 	public void run() {
-		
-		log.info(this + " start");
 		
 		try {
 			this.mbeanServerConnection = getMbeanServerConnection(); // connect to source
@@ -287,12 +281,6 @@ public abstract class JmxSource implements Runnable{
 			}
 			
 			this.setBroken(true);
-			
-			try {
-				throw new InterruptedException();
-			} catch (InterruptedException e1) {
-				log.error(JmxSource.this + " " + e1.getClass());
-			}
 		}
 		
 		if (this.isConnected() && !this.isBroken()) {
@@ -315,7 +303,9 @@ public abstract class JmxSource implements Runnable{
 							);
 							
 						} catch (Exception e) {
+							
 							log.error(JmxSource.this + " " + e.getMessage());
+							
 							if (log.isDebugEnabled()) {
 								e.printStackTrace();
 							}
@@ -355,8 +345,7 @@ public abstract class JmxSource implements Runnable{
 		}
 		
 		this.setLabel(buffer.toString());
-		
-		log.info("Init " + this);
+
 		this.writer = writer;
 		this.metricGroups = metrics;
 		
@@ -364,6 +353,7 @@ public abstract class JmxSource implements Runnable{
 		this.setBroken(false);
 		
 		tasks = new HashSet<ScheduledFuture<?>>();
+		log.info(this + " initialized");
 
 		return true;
 	}
@@ -372,11 +362,11 @@ public abstract class JmxSource implements Runnable{
 	
 		for (ScheduledFuture<?> task: tasks) {
 			task.cancel(true);
-			log.debug("Cancel task, result is " + task.isCancelled());
+			log.debug(this + " task cancelation status is " + task.isCancelled());
 		}
-
-		//this.metricExecutor.shutdownNow();
+		
 		this.mbeanServerConnection = null;
+		log.info(this + " tasks are canceled");
 	}
 
 	public abstract MBeanServerConnection getMbeanServerConnection() throws InterruptedException;

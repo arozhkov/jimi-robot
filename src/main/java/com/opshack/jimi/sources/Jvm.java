@@ -22,7 +22,6 @@ public class Jvm  extends JmxSource {
 	@Override
 	public MBeanServerConnection getMbeanServerConnection()	throws InterruptedException {
 
-		log.info(this + " connecting");
 		if (!super.isConnected()) {
 
 			JMXServiceURL serviceURL = null;
@@ -46,16 +45,23 @@ public class Jvm  extends JmxSource {
 
 			} catch (IOException e) {
 
-				log.error(this + " IO Exception : " + "service:jmx:rmi:///jndi/rmi://" 
-						+ this.getHost() + ":"  + this.getPort() + "/jmxrmi");
-
 				Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
 
 				this.setBroken(true);
 				throw new InterruptedException();	
+				
+			}  catch (Exception ee) {
+				
+				ee.printStackTrace();
+				
+				Thread.sleep(60000); // sleep 60 seconds then mark thread as broken and interrupt it
+				
+				this.setBroken(true);
+				throw new InterruptedException();
 			}
 		}
 
+		log.info(this + " connected");
 		return this.mbeanServerConnection;
 	}
 }
