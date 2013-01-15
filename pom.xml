@@ -43,7 +43,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.oracle.weblogic</groupId>
-			<artifactId>wlclient</artifactId>
+			<artifactId>wlthint3client</artifactId>
 			<version>10.3</version>
 		</dependency>
 		<dependency>
