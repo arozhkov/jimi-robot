@@ -93,6 +93,7 @@ public class Jimi {
 			        log.info("Shutdown.");
 			        System.exit(0);
 			    }
+				
 				counter++;
 				if (counter == 300) {
 					log.info("Jimi is running well. Sources count: " + sources.size());
