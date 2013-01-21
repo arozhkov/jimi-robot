@@ -1,30 +1,17 @@
 package com.opshack.jimi.sources;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectInstance;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
-import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.InvalidKeyException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opshack.jimi.Event;
 import com.opshack.jimi.MetricGroups;
 import com.opshack.jimi.writers.Writer;
 
@@ -47,241 +34,24 @@ public abstract class JmxSource implements Runnable{
 	private boolean broken = false;
 	private boolean definitlyBroken = false;
 	
-	private MBeanServerConnection mbeanServerConnection;
+	protected MBeanServerConnection mbeanServerConnection;
 	private ScheduledExecutorService metricExecutor;
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
 	private String label; 
 	
-	private class JmxMetric implements Runnable {
-
-		private Map metric;
-		private ObjectName objectName;
-		private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
-		
-		JmxMetric(Map metric) throws IOException {
-
-			log.debug(JmxSource.this + " " + metric + " creat metric");
-			this.metric = metric;
-			try {
-				this.objectName = new ObjectName((String) this.metric.get("mbean"));
-				
-			} catch (MalformedObjectNameException e) {
-				log.error(JmxSource.this + " " + this.objectName + " " + e.getMessage());
-				e.printStackTrace();
-				
-				try {
-					throw new InterruptedException();
-				} catch (InterruptedException e1) {
-					log.error(JmxSource.this + " " + this.objectName + " " + e.getMessage());
-				}
-				
-			} catch (NullPointerException e) {
-				log.error(JmxSource.this + " " + this.objectName + " " + e.getMessage());
-				e.printStackTrace();
-				
-				try {
-					throw new InterruptedException();
-				} catch (InterruptedException e1) {
-					log.error(JmxSource.this + " " + this.objectName + " " + e.getMessage());
-				}
-			}
-			
-			if (isConnected() && !isBroken()) {
-				
-				log.debug(JmxSource.this + " " + this.metric + " getting mbean(s)");
-				Set<ObjectInstance> beans = new HashSet<ObjectInstance>();
-				
-				if (this.objectName.isPattern()) {
-					
-					beans.addAll(mbeanServerConnection.queryMBeans(this.objectName, null));
-					
-				} else {
-					
-					try {
-						
-						beans.add(mbeanServerConnection.getObjectInstance(this.objectName));
-						
-					} catch (InstanceNotFoundException e) {
-						
-						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-					}
-				}
-				log.debug(JmxSource.this + " " + this.metric + " got " + beans.size() + " bean(s)");
-				
-				String filter = "";
-				if (this.metric.get("filter") != null) {
-					filter = (String) this.metric.get("filter");
-				}
-				
-				String attr = (String) this.metric.get("attr");
-				if (attr != null) {
-					for (ObjectInstance bean: beans) {
-						
-						if (bean.getObjectName().toString().contains(filter)) { // filter out beans
-							String label = getLabel(bean.getObjectName());
-							this.beans.put(label, bean);
-						}
-					}
-				}
-			}
-		}
-		
-		private String getLabel(ObjectName objectName) {
-			
-			String label = (String) this.metric.get("label");
-			
-			//TODO find a better way to manage Upper/Lower case in "name"
-			String name = objectName.getKeyProperty("Name");
-			if (name == null) name = objectName.getKeyProperty("name");
-
-			log.debug("Name : " + name + "-" + objectName);
-			
-			if (name == null) {
-				return label.replace("$Name", "Undefined");
-			}
-			
-			return label.replace("$Name", name.replaceAll("\\W", ""));
-		}
-		
-		public void run() {
-
-			if (Thread.interrupted()) {
-
-				try {
-					throw new InterruptedException();
-
-				} catch (InterruptedException e) {
-					log.error(JmxSource.this + " " + this.objectName + " " + e.getMessage());
-					e.printStackTrace();
-				}
-			}
-
-			if (isConnected() && !isBroken()) {
-
-				Set<String> labels = this.beans.keySet();
-				for (String label: labels) {
-
-					try {
-					
-						ObjectInstance bean = this.beans.get(label);	
-						Object value = mbeanServerConnection.getAttribute(bean.getObjectName(), (String) this.metric.get("attr"));
 	
-						if (value != null) {
+	public abstract void setMBeanServerConnection() throws InterruptedException;
 	
-							log.debug(JmxSource.this + " " + bean.getObjectName() + 
-									" attribute " + this.metric.get("attr") +  " value is " + String.valueOf(value));
-	
-							if (value instanceof CompositeDataSupport) {
-	
-								Object subvalue = null;
-								String subattr = (String) this.metric.get("subattr");
-	
-								if (subattr != null) {
-									subvalue = ((CompositeDataSupport) value).get(subattr);
-	
-									if (subvalue != null && (subvalue instanceof Long || subvalue instanceof Integer)) {
-	
-										JmxSource.this.writer.write(
-												new Event(JmxSource.this.toString(), label, String.valueOf(subvalue)));
-	
-									} else {
-										log.warn(JmxSource.this + " " + bean.getObjectName() + 
-												" got UNSUPPORTED value " + String.valueOf(subvalue) );
-									}
-	
-								} else {
-									log.warn(JmxSource.this + " " + bean.getObjectName() + 
-											" attr is of CompositeData type, you have to provide subattr parameter.");
-								}
-					
-							} else if (value instanceof Long || value instanceof Integer) {
-	
-								JmxSource.this.writer.write(
-										new Event(JmxSource.this.toString(), label, String.valueOf(value)));
-	
-							} else  {
-								log.warn(JmxSource.this + " " + bean.getObjectName() + 
-										" got UNSUPPORTED value " + String.valueOf(value) );
-							}
-						} 
-			
-					} catch (AttributeNotFoundException e) {      
-						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-					} catch (MBeanException e) {
-						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-
-					} catch (ReflectionException e) {
-						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-
-					} catch (IllegalStateException e) {
-						log.debug(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-
-					}  catch (InvalidKeyException e) {
-						log.warn(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-						
-					} catch (Exception e) {
-						log.error(JmxSource.this + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-						if (log.isDebugEnabled()) {
-							e.printStackTrace();
-						}
-
-						JmxSource.this.setBroken(true); // source must be shutdown
-
-						try {
-							throw new InterruptedException("after " + e.getMessage());
-						} catch (InterruptedException e1) {
-							log.error(JmxSource.this + " " + this.objectName + " " + e1.getMessage());
-						}
-
-					}
-				}
-				
-			} else {
-				
-				log.error(JmxSource.this + " is not connected");
-				JmxSource.this.setBroken(true); // source must be shutdown
-				
-				try {
-					throw new InterruptedException("Source is not connected");
-				} catch (InterruptedException e) {
-					log.error(JmxSource.this + " " + e.getMessage());
-				}
-			}
-		} 
+	public MBeanServerConnection getMBeanServerConnection() {
+		return this.mbeanServerConnection;
 	}
-		
 	
 	public void run() {
 		
 		try {
-			this.mbeanServerConnection = getMbeanServerConnection(); // connect to source
+			setMBeanServerConnection(); // connect to source
 			
 		} catch (InterruptedException e) {
 			
@@ -311,7 +81,7 @@ public abstract class JmxSource implements Runnable{
 						
 						try {
 							
-							JmxMetric jmxMetric = new JmxMetric(metric);
+							JmxMetric jmxMetric = new JmxMetric(this, metric);
 							tasks.add( 
 									metricExecutor.scheduleAtFixedRate(jmxMetric,
 									0,
@@ -385,8 +155,6 @@ public abstract class JmxSource implements Runnable{
 		this.mbeanServerConnection = null;
 		log.info(this + " tasks are canceled");
 	}
-
-	public abstract MBeanServerConnection getMbeanServerConnection() throws InterruptedException;
 	
 	public boolean isConnected() {
 		
@@ -471,6 +239,12 @@ public abstract class JmxSource implements Runnable{
 	}
 	public synchronized void setLabel(String label) {
 		this.label = label;
+	}
+
+
+	public synchronized Writer getWriter() {
+		return writer;
 	}	
+	
 	
 }

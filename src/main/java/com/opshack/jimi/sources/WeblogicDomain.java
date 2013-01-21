@@ -38,7 +38,7 @@ public class WeblogicDomain extends JmxSource {
 	
 	
 	@Override
-	public MBeanServerConnection getMbeanServerConnection()
+	public void setMBeanServerConnection()
 			throws InterruptedException {
 		
 		String protocol = "t3";
@@ -67,15 +67,13 @@ public class WeblogicDomain extends JmxSource {
 			
 		} catch (IOException e) {
 			
-			log.error(this + " IO Exception : " + protocol + "://" + this.getHost() + ":"  + this.getPort() + mserver);
-			
+			log.warn(this + " IO Exception occurred during connection to Weblogic Administration server");
 			Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
 			
 			this.setBroken(true);
-			throw new InterruptedException();	
+			throw new InterruptedException("IO Exception occurred during connection to Weblogic Administration server");	
 		}
 		
-		return this.connection;
 	}
 	
 	public static ObjectName[] getServerRuntimes() throws Exception {
@@ -86,7 +84,7 @@ public class WeblogicDomain extends JmxSource {
 		
 		ArrayList<JmxSource> sources = new ArrayList<JmxSource>();
 		
-		this.getMbeanServerConnection();
+		this.setMBeanServerConnection();
 		ObjectName[] serverRT = getServerRuntimes();
 		
 		for (ObjectName server: serverRT) {

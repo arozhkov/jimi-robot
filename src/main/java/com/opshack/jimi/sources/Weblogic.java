@@ -5,7 +5,6 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -19,10 +18,10 @@ public class Weblogic extends JmxSource {
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	private JMXConnector jmxConnector;
-	private MBeanServerConnection mbeanServerConnection;
+	//private MBeanServerConnection mbeanServerConnection;
 	
 	
-	public synchronized MBeanServerConnection getMbeanServerConnection() throws InterruptedException {
+	public synchronized void setMBeanServerConnection() throws InterruptedException {
 		
 		if (!super.isConnected()) {
 			
@@ -56,7 +55,7 @@ public class Weblogic extends JmxSource {
 
 			} catch (IOException e) {
 				
-				log.warn(this + "IO Exception occurred during connection to JMX server");
+				log.warn(this + " IO Exception occurred during connection to JMX server");
 				Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
 				
 				this.setBroken(true);
@@ -64,7 +63,7 @@ public class Weblogic extends JmxSource {
 				
 			} catch (Exception ee) {
 				
-				log.warn(this + "Non-IO Exception occurred during connection to JMX server");
+				log.warn(this + " Non-IO Exception occurred during connection to JMX server");
 				ee.printStackTrace();
 				
 				Thread.sleep(60000); // sleep 60 seconds then mark thread as broken and interrupt it
@@ -75,8 +74,6 @@ public class Weblogic extends JmxSource {
 		}
 		
 		log.info(this + " connected");
-		return this.mbeanServerConnection;
-		
 	}
 	
 }
