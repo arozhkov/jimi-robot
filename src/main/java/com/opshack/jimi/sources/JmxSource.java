@@ -254,6 +254,12 @@ public abstract class JmxSource implements Runnable{
 
 						JmxSource.this.setBroken(true); // source must be shutdown
 
+						try {
+							throw new InterruptedException("after " + e.getMessage());
+						} catch (InterruptedException e1) {
+							log.error(JmxSource.this + " " + this.objectName + " " + e1.getMessage());
+						}
+
 					}
 				}
 				
@@ -262,6 +268,11 @@ public abstract class JmxSource implements Runnable{
 				log.error(JmxSource.this + " is not connected");
 				JmxSource.this.setBroken(true); // source must be shutdown
 				
+				try {
+					throw new InterruptedException("Source is not connected");
+				} catch (InterruptedException e) {
+					log.error(JmxSource.this + " " + e.getMessage());
+				}
 			}
 		} 
 	}
@@ -281,6 +292,12 @@ public abstract class JmxSource implements Runnable{
 			}
 			
 			this.setBroken(true);
+			
+			try {
+				throw new InterruptedException();
+			} catch (InterruptedException e1) {
+				log.error(JmxSource.this + " " + e1.getClass());
+			}
 		}
 		
 		if (this.isConnected() && !this.isBroken()) {

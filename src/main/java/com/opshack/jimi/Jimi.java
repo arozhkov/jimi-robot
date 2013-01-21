@@ -44,7 +44,7 @@ public class Jimi {
 			new Thread(writer).start(); 	// start writer
 			
 		} else {
-			log.error("Can't initialze writer.");
+			log.error("Can't initialize writer.");
 			System.exit(1);	
 		}
 		
@@ -95,7 +95,7 @@ public class Jimi {
 			    }
 				counter++;
 				if (counter == 300) {
-					log.info("Jimi's running well. Sources count: " + sources.size());
+					log.info("Jimi is running well. Sources count: " + sources.size());
 					counter = 0;
 				}
 			}

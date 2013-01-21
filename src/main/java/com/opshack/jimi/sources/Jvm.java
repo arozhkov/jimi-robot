@@ -45,6 +45,7 @@ public class Jvm  extends JmxSource {
 
 			} catch (IOException e) {
 
+				log.warn(this + "IO Exception occurred during connection to JMX server");
 				Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
 
 				this.setBroken(true);
@@ -52,6 +53,7 @@ public class Jvm  extends JmxSource {
 				
 			}  catch (Exception ee) {
 				
+				log.warn(this + "Non-IO Exception occurred during connection to JMX server");
 				ee.printStackTrace();
 				
 				Thread.sleep(60000); // sleep 60 seconds then mark thread as broken and interrupt it

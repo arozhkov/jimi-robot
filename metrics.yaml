@@ -5,25 +5,25 @@ metrics:
       attr:     HeapMemoryUsage
       subattr:  used
       rate:     10
-      label:    Mem.HeapUsed
+      label:    10s.Mem.HeapUsed
 
     - mbean:    java.lang:type=Memory
       attr:     NonHeapMemoryUsage
       subattr:  used
       rate:     10
-      label:    Mem.NonHeapUsed
+      label:    10s.Mem.NonHeapUsed
 
     - mbean:    java.lang:type=Memory
       attr:     HeapMemoryUsage
       subattr:  committed
       rate:     30
-      label:    Mem.HeapCommitted
+      label:    30s.Mem.HeapCommitted
 
     - mbean:    java.lang:type=Memory
       attr:     NonHeapMemoryUsage
       subattr:  committed
       rate:     30
-      label:    Mem.NonHeapCommitted
+      label:    30s.Mem.NonHeapCommitted
 
   MemoryPools:
     - mbean:    java.lang:type=MemoryPool,*
@@ -42,4 +42,4 @@ metrics:
     - mbean:    java.lang:type=Threading
       attr:     ThreadCount
       rate:     10
-      label:    Thread.Count
+      label:    10s.Thread.Count
