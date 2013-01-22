@@ -13,6 +13,7 @@ import javax.management.MBeanServerConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.opshack.jimi.JmxMetric;
 import com.opshack.jimi.MetricGroups;
 import com.opshack.jimi.writers.Writer;
 

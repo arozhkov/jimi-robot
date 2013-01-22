@@ -1,4 +1,4 @@
-package com.opshack.jimi.sources;
+package com.opshack.jimi;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ import javax.management.openmbean.CompositeDataSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opshack.jimi.Event;
+import com.opshack.jimi.sources.JmxSource;
 
 public class JmxMetric implements Runnable {
 
@@ -26,7 +26,8 @@ public class JmxMetric implements Runnable {
 	private ObjectName objectName;
 	private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
 	
-	JmxMetric(JmxSource source, Map metric) throws IOException, MalformedObjectNameException, NullPointerException, InstanceNotFoundException {
+	
+	public JmxMetric(JmxSource source, Map metric) throws IOException, MalformedObjectNameException, NullPointerException, InstanceNotFoundException {
 
 		this.source = source;
 		
