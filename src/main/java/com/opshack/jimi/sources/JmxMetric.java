@@ -6,15 +6,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.InvalidKeyException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +69,7 @@ public class JmxMetric implements Runnable {
 		}
 	}
 	
+	
 	private String getLabel(ObjectName objectName) {
 		
 		String label = (String) this.metric.get("label");
@@ -90,9 +87,10 @@ public class JmxMetric implements Runnable {
 		return label.replace("$Name", name.replaceAll("\\W", ""));
 	}
 	
+	
 	public void run() {
 
-		if (this.source.isConnected() && !this.source.isBroken() && !Thread.currentThread().isInterrupted()) {
+		if (this.source.isConnected() && !this.source.isBroken()) {
 
 			Set<String> labels = this.beans.keySet();
 			for (String label: labels) {
@@ -140,60 +138,26 @@ public class JmxMetric implements Runnable {
 									" got UNSUPPORTED value " + String.valueOf(value) );
 						}
 					} 
-		
-				} catch (AttributeNotFoundException e) {      
-					log.error(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-					if (log.isDebugEnabled()) {
-						e.printStackTrace();
-					}
-				} catch (MBeanException e) {
-					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-					if (log.isDebugEnabled()) {
-						e.printStackTrace();
-					}
-
-				} catch (ReflectionException e) {
-					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-					if (log.isDebugEnabled()) {
-						e.printStackTrace();
-					}
-
-				} catch (IllegalStateException e) {
-					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-					if (log.isDebugEnabled()) {
-						e.printStackTrace();
-					}
-
-				}  catch (InvalidKeyException e) {
-					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-					if (log.isDebugEnabled()) {
-						e.printStackTrace();
-					}
 					
-				} catch (Exception e) {
-					log.error(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
+				} catch (IOException e) {
+					
+					log.warn(this.source + " IOException: " + e.getMessage());
 
 					if (log.isDebugEnabled()) {
 						e.printStackTrace();
 					}
 
-					this.source.setBroken(true); // source must be shutdown
-					Thread.currentThread().interrupt();
+					this.source.setBroken(true); 								// source must be shutdown
 
+				} catch (Exception e) {      
+					
+					log.warn(this.source + " non-IOException: " + e.getMessage());
+
+					if (log.isDebugEnabled()) {
+						e.printStackTrace();
+					}
 				}
 			}
-			
-		} else {
-			
-			log.error(this.source + " is invalid");
-			this.source.setBroken(true); // source must be shutdown
-			
-			Thread.currentThread().interrupt();
 		}
 	} 
 }

@@ -62,12 +62,13 @@ public abstract class JmxSource implements Runnable{
 				e.printStackTrace();
 			}
 			
-			log.warn(e.getMessage()); 											// print warning message
+			log.warn(this + " " + e.getMessage()); 								// print warning message
 			try {
+				
 				Thread.sleep(30000); 											// block thread for 30 seconds
-			} catch (InterruptedException e1) {
-																				// do nothing, anyway thread is going to exit
-			} 
+				
+			} catch (InterruptedException e1) {}								// do nothing, anyway it's going to exit
+			
 			this.setBroken(true);												// break the source
 		}
 		
