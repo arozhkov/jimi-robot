@@ -30,35 +30,14 @@ public class JmxMetric implements Runnable {
 	private ObjectName objectName;
 	private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
 	
-	JmxMetric(JmxSource source, Map metric) throws IOException {
+	JmxMetric(JmxSource source, Map metric) throws IOException, MalformedObjectNameException, NullPointerException, InstanceNotFoundException {
 
 		this.source = source;
 		
 		log.debug(this.source + " " + metric + " creat metric");
 		this.metric = metric;
-		try {
-			this.objectName = new ObjectName((String) this.metric.get("mbean"));
-			
-		} catch (MalformedObjectNameException e) {
-			log.error(this.source + " " + this.objectName + " " + e.getMessage());
-			e.printStackTrace();
-			
-			try {
-				throw new InterruptedException();
-			} catch (InterruptedException e1) {
-				log.error(this.source + " " + this.objectName + " " + e.getMessage());
-			}
-			
-		} catch (NullPointerException e) {
-			log.error(this.source + " " + this.objectName + " " + e.getMessage());
-			e.printStackTrace();
-			
-			try {
-				throw new InterruptedException();
-			} catch (InterruptedException e1) {
-				log.error(this.source + " " + this.objectName + " " + e.getMessage());
-			}
-		}
+		
+		this.objectName = new ObjectName((String) this.metric.get("mbean"));
 		
 		if (this.source.isConnected() && !this.source.isBroken()) {
 			
@@ -71,19 +50,9 @@ public class JmxMetric implements Runnable {
 				
 			} else {
 				
-				try {
-					
-					beans.add(this.source.getMBeanServerConnection().getObjectInstance(this.objectName));
-					
-				} catch (InstanceNotFoundException e) {
-					
-					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
-
-					if (log.isDebugEnabled()) {
-						e.printStackTrace();
-					}
-				}
+				beans.add(this.source.getMBeanServerConnection().getObjectInstance(this.objectName));
 			}
+			
 			log.debug(this.source + " " + this.metric + " got " + beans.size() + " bean(s)");
 			
 			String filter = "";
@@ -123,18 +92,7 @@ public class JmxMetric implements Runnable {
 	
 	public void run() {
 
-		if (Thread.interrupted()) {
-
-			try {
-				throw new InterruptedException();
-
-			} catch (InterruptedException e) {
-				log.error(this.source + " " + this.objectName + " " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-
-		if (this.source.isConnected() && !this.source.isBroken()) {
+		if (this.source.isConnected() && !this.source.isBroken() && !Thread.currentThread().isInterrupted()) {
 
 			Set<String> labels = this.beans.keySet();
 			for (String label: labels) {
@@ -163,12 +121,12 @@ public class JmxMetric implements Runnable {
 											new Event(this.source.toString(), label, String.valueOf(subvalue)));
 
 								} else {
-									log.warn(this.source + " " + bean.getObjectName() + 
+									log.error(this.source + " " + bean.getObjectName() + 
 											" got UNSUPPORTED value " + String.valueOf(subvalue) );
 								}
 
 							} else {
-								log.warn(this.source + " " + bean.getObjectName() + 
+								log.error(this.source + " " + bean.getObjectName() + 
 										" attr is of CompositeData type, you have to provide subattr parameter.");
 							}
 				
@@ -178,13 +136,13 @@ public class JmxMetric implements Runnable {
 									new Event(this.source.toString(), label, String.valueOf(value)));
 
 						} else  {
-							log.warn(this.source + " " + bean.getObjectName() + 
+							log.error(this.source + " " + bean.getObjectName() + 
 									" got UNSUPPORTED value " + String.valueOf(value) );
 						}
 					} 
 		
 				} catch (AttributeNotFoundException e) {      
-					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
+					log.error(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
 
 					if (log.isDebugEnabled()) {
 						e.printStackTrace();
@@ -204,7 +162,7 @@ public class JmxMetric implements Runnable {
 					}
 
 				} catch (IllegalStateException e) {
-					log.debug(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
+					log.warn(this.source + " " + this.objectName + " " + e.getClass().getName() + ": " + e.getMessage());
 
 					if (log.isDebugEnabled()) {
 						e.printStackTrace();
@@ -225,26 +183,17 @@ public class JmxMetric implements Runnable {
 					}
 
 					this.source.setBroken(true); // source must be shutdown
-
-					try {
-						throw new InterruptedException("after " + e.getMessage());
-					} catch (InterruptedException e1) {
-						log.error(this.source + " " + this.objectName + " " + e1.getMessage());
-					}
+					Thread.currentThread().interrupt();
 
 				}
 			}
 			
 		} else {
 			
-			log.error(this.source + " is not connected");
+			log.error(this.source + " is invalid");
 			this.source.setBroken(true); // source must be shutdown
 			
-			try {
-				throw new InterruptedException("Source is not connected");
-			} catch (InterruptedException e) {
-				log.error(this.source + " " + e.getMessage());
-			}
+			Thread.currentThread().interrupt();
 		}
 	} 
 }

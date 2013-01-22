@@ -1,5 +1,6 @@
 package com.opshack.jimi.sources;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,24 +52,25 @@ public abstract class JmxSource implements Runnable{
 	public void run() {
 		
 		try {
-			setMBeanServerConnection(); // connect to source
 			
-		} catch (InterruptedException e) {
+			setMBeanServerConnection(); 										// connect to source
+		
+		// TODO handle non IO exceptions as definitlyBroken	
+		} catch (Exception e) { 												// if failed 
 			
-			log.error(JmxSource.this + " " + e.getMessage());
-	
 			if (log.isDebugEnabled()) {
 				e.printStackTrace();
 			}
 			
-			this.setBroken(true);
-			
+			log.warn(e.getMessage()); 											// print warning message
 			try {
-				throw new InterruptedException();
+				Thread.sleep(30000); 											// block thread for 30 seconds
 			} catch (InterruptedException e1) {
-				log.error(JmxSource.this + " " + e1.getClass());
-			}
+																				// do nothing, anyway thread is going to exit
+			} 
+			this.setBroken(true);												// break the source
 		}
+		
 		
 		if (this.isConnected() && !this.isBroken()) {
 			
@@ -81,36 +83,35 @@ public abstract class JmxSource implements Runnable{
 						
 						try {
 							
-							JmxMetric jmxMetric = new JmxMetric(this, metric);
-							tasks.add( 
+							JmxMetric jmxMetric = new JmxMetric(this, metric); 	// create JMX metric
+							
+							tasks.add( 											// schedule JMX metric
 									metricExecutor.scheduleAtFixedRate(jmxMetric,
 									0,
 									Long.valueOf((Integer) metric.get("rate")), 
 									TimeUnit.SECONDS)
 							);
+
+						} catch (IOException e) { 								// if IO exception occurred
 							
-						} catch (Exception e) {
-							
-							log.error(JmxSource.this + " " + e.getMessage());
+							log.warn(this + " " + e.getMessage()); 				// print warning message
 							
 							if (log.isDebugEnabled()) {
 								e.printStackTrace();
 							}
 							
-							JmxSource.this.setBroken(true); // source must be shutdown
+							this.setBroken(true); 								// break the source
+							break; 												// break the loop
 							
-							try {
-								throw new InterruptedException();
-							} catch (InterruptedException e1) {
-								log.error(JmxSource.this + " " + e1.getMessage());
-							}
+						} catch (Exception e) { 								// if not an IO exception just skip metric creation
+							log.error(this + " " + e.getMessage());
 						}
 					}
 				}
 			}
+			
+			log.info(this + " tasks are initiated");
 		}
-		
-		log.debug(this + " terminates");
 	}
 	
 	
