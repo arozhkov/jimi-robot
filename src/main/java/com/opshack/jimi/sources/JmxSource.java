@@ -96,7 +96,7 @@ public abstract class JmxSource implements Runnable{
 
 						} catch (IOException e) { 								// if IO exception occurred
 							
-							log.warn(this + " " + e.getMessage()); 				// print warning message
+							log.warn(this + " IOException: " + e.getMessage()); 				// print warning message
 							
 							if (log.isDebugEnabled()) {
 								e.printStackTrace();
@@ -106,7 +106,7 @@ public abstract class JmxSource implements Runnable{
 							break; 												// break the loop
 							
 						} catch (Exception e) { 								// if not an IO exception just skip metric creation
-							log.error(this + " " + e.getMessage());
+							log.error(this + " non-IOException: " + e.getMessage());
 						}
 					}
 				}

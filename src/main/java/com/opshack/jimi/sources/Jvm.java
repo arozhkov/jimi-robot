@@ -41,8 +41,9 @@ public class Jvm  extends JmxSource {
 			}
 			
 			log.info(this + " is connected");
-		}
 		
-		log.debug(this + " already connected");
+		} else {
+			log.warn(this + " is already connected");
+		}
 	}
 }

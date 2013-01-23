@@ -52,8 +52,9 @@ public class Weblogic extends JmxSource {
 			}
 			
 			log.info(this + " is connected");
+			
+		} else {
+			log.warn(this + " is already connected");
 		}
-		
-		log.debug(this + " already connected");
 	}
 }
