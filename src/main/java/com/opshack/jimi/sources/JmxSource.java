@@ -73,48 +73,49 @@ public abstract class JmxSource implements Runnable{
 			this.setBroken(true);												// break the source
 		}
 		
-		
-		if (this.isConnected() && !this.isBroken()) {
 			
-			for (String list: this.metricGroupsList) {
-				
-				List<Map> metrics = this.metricGroups.get(list);
-				if (metrics != null && metrics.size() > 0) {
-					
-					for (Map metric: metrics) {
+		for (String list: this.metricGroupsList) {
+
+			List<Map> metrics = this.metricGroups.get(list);
+			if (metrics != null && metrics.size() > 0) {
+
+				for (Map metric: metrics) {
+
+					if (this.isConnected() && !this.isBroken()) {				// 
 						
 						try {
-							
+
 							JmxMetric jmxMetric = new JmxMetric(this, metric); 	// create JMX metric
-							
+
 							tasks.add( 											// schedule JMX metric
 									metricExecutor.scheduleAtFixedRate(jmxMetric,
-									0,
-									Long.valueOf((Integer) metric.get("rate")), 
-									TimeUnit.SECONDS)
-							);
+											10,
+											Long.valueOf((Integer) metric.get("rate")), 
+											TimeUnit.SECONDS)
+									);
 
 						} catch (IOException e) { 								// if IO exception occurred
-							
-							log.warn(this + " IOException: " + e.getMessage()); 				// print warning message
-							
+
+							log.warn(this + " IOException: " + e.getMessage()); // print warning message
+
 							if (log.isDebugEnabled()) {
 								e.printStackTrace();
 							}
-							
+
 							this.setBroken(true); 								// break the source
 							break; 												// break the loop
-							
+
 						} catch (Exception e) { 								// if not an IO exception just skip metric creation
 							log.error(this + " non-IOException: " + e.getMessage());
 						}
+						
 					}
 				}
 			}
+		}
 			
 			log.info(this + " tasks are initiated");
 		}
-	}
 	
 	
 	// TODO make object validation during "init" and return real status of
@@ -223,31 +224,28 @@ public abstract class JmxSource implements Runnable{
 		this.definitlyBroken = definitlyBroken;
 	}
 
-	public synchronized String getPrefix() {
+	public String getPrefix() {
 		return prefix;
 	}
-	public synchronized void setPrefix(String prefix) {
+	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}
 
-	public synchronized String getSuffix() {
+	public String getSuffix() {
 		return suffix;
 	}
-	public synchronized void setSuffix(String suffix) {
+	public void setSuffix(String suffix) {
 		this.suffix = suffix;
 	}
 
-	public synchronized String getLabel() {
+	public String getLabel() {
 		return label;
 	}
-	public synchronized void setLabel(String label) {
+	public void setLabel(String label) {
 		this.label = label;
 	}
 
-
-	public synchronized Writer getWriter() {
+	public Writer getWriter() {
 		return writer;
-	}	
-	
-	
+	}
 }
