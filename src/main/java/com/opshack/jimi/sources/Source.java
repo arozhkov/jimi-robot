@@ -14,11 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opshack.jimi.Jimi;
-import com.opshack.jimi.JmxMetric;
+import com.opshack.jimi.Metric;
 import com.opshack.jimi.writers.Writer;
 
 
-public abstract class JmxSource implements Runnable{
+public abstract class Source implements Runnable{
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
@@ -75,21 +75,21 @@ public abstract class JmxSource implements Runnable{
 			
 		for (String group: this.metricGroupsList) {
 
-			ArrayList<Map> metrics = (ArrayList) this.jimi.metricGroups.get(group);
-			if (metrics != null && metrics.size() > 0) {
+			ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
+			if (metricDefs != null && metricDefs.size() > 0) {
 
-				for (Map metric: metrics) {
+				for (Map metricDef: metricDefs) {
 
 					if (this.isConnected() && !this.isBroken()) {				// 
 						
 						try {
 
-							JmxMetric jmxMetric = new JmxMetric(this, metric); 	// create JMX metric
+							Metric metric = new Metric(this, metricDef); 	// create JMX metric
 
 							this.tasks.add( 											// schedule JMX metric
-									this.jimi.taskExecutor.scheduleAtFixedRate(jmxMetric,
+									this.jimi.taskExecutor.scheduleAtFixedRate(metric,
 											10,
-											Long.valueOf((Integer) metric.get("rate")), 
+											Long.valueOf((Integer) metricDef.get("rate")), 
 											TimeUnit.SECONDS)
 									);
 

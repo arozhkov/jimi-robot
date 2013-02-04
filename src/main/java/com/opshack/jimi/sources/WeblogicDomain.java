@@ -17,7 +17,7 @@ import javax.naming.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WeblogicDomain extends JmxSource {
+public class WeblogicDomain extends Source {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	private String filter = "";
@@ -80,16 +80,16 @@ public class WeblogicDomain extends JmxSource {
 	      return (ObjectName[]) connection.getAttribute(service, "ServerRuntimes");
 	}
 	
-	public ArrayList<JmxSource> getSources() throws Exception {
+	public ArrayList<Source> getSources() throws Exception {
 		
-		ArrayList<JmxSource> sources = new ArrayList<JmxSource>();
+		ArrayList<Source> sources = new ArrayList<Source>();
 		
 		this.setMBeanServerConnection();
 		ObjectName[] serverRT = getServerRuntimes();
 		
 		for (ObjectName server: serverRT) {
 			
-			JmxSource source = new Weblogic();
+			Source source = new Weblogic();
 			
 			String name = (String) connection.getAttribute(server, "Name");
 			log.debug("Weblogic name: " + name);

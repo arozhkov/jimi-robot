@@ -7,7 +7,7 @@ import javax.management.remote.JMXServiceURL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Jvm  extends JmxSource {
+public class Jvm  extends Source {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	private JMXConnector jmxConnector;

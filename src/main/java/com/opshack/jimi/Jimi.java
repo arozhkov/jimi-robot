@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import com.opshack.jimi.sources.JmxSource;
+import com.opshack.jimi.sources.Source;
 import com.opshack.jimi.sources.Jvm;
 import com.opshack.jimi.sources.Weblogic;
 import com.opshack.jimi.sources.WeblogicDomain;
@@ -28,12 +28,12 @@ public class Jimi {
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private ArrayList<JmxSource> sources;
+	private ArrayList<Source> sources;
 	private int executorThreadPoolSize = 2;
 	
 	public Writer writer;
 	public ScheduledExecutorService taskExecutor;
-	public HashMap metricGroups= new HashMap();
+	public HashMap metricGroups = new HashMap();
 	
 	
 	Jimi() throws FileNotFoundException {
@@ -85,7 +85,7 @@ public class Jimi {
 		compileSources();					// process proxy sources
 		
 		boolean startedSources = false;		// is there any running source?
-		for (JmxSource source: sources) {
+		for (Source source: sources) {
 			if (source.init(this)) {
 				new Thread(source).start();
 				startedSources = true;		// yes
@@ -101,7 +101,7 @@ public class Jimi {
 			int counter = 0;
 			while (true) {
 				
-				for (JmxSource source: sources) {
+				for (Source source: sources) {
 					
 					if (source.isBroken()) { 		// check source state
 						log.warn(source + " is broken.");
@@ -136,9 +136,9 @@ public class Jimi {
 
 	private void compileSources() throws Exception {
 		
-		ArrayList<JmxSource> compiledSources = new ArrayList<JmxSource>();
+		ArrayList<Source> compiledSources = new ArrayList<Source>();
 		
-		for (JmxSource source: sources) {
+		for (Source source: sources) {
 			
 			if (source instanceof WeblogicDomain) {
 				compiledSources.addAll( ((WeblogicDomain)source).getSources() );
@@ -147,7 +147,7 @@ public class Jimi {
 			}
 		}
 		
-		this.sources = new ArrayList<JmxSource>();
+		this.sources = new ArrayList<Source>();
 		this.sources.addAll(compiledSources);
 		
 	}
@@ -211,10 +211,10 @@ public class Jimi {
 	}
 	
 	
-	public ArrayList<JmxSource> getSources() {
+	public ArrayList<Source> getSources() {
 		return sources;
 	}
-	public void setSources(ArrayList<JmxSource> sources) {
+	public void setSources(ArrayList<Source> sources) {
 		this.sources = sources;
 	}
 	

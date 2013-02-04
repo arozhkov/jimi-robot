@@ -11,7 +11,7 @@ import javax.naming.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Weblogic extends JmxSource {
+public class Weblogic extends Source {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	private JMXConnector jmxConnector;

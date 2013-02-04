@@ -15,30 +15,30 @@ import javax.management.openmbean.CompositeDataSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opshack.jimi.sources.JmxSource;
+import com.opshack.jimi.sources.Source;
 
-public class JmxMetric implements Runnable {
+public class Metric implements Runnable {
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
-	private JmxSource source;
-	private Map metric;
+	private Source source;
+	private Map metricDef;
 	private ObjectName objectName;
 	private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
 	
 	
-	public JmxMetric(JmxSource source, Map metric) throws IOException, MalformedObjectNameException, NullPointerException, InstanceNotFoundException {
+	public Metric(Source source, Map metricDef) throws IOException, MalformedObjectNameException, NullPointerException, InstanceNotFoundException {
 
 		this.source = source;
 		
-		log.debug(this.source + " " + metric + " creat metric");
-		this.metric = metric;
+		log.debug(this.source + " " + metricDef + " creat metric");
+		this.metricDef = metricDef;
 		
-		this.objectName = new ObjectName((String) this.metric.get("mbean"));
+		this.objectName = new ObjectName((String) this.metricDef.get("mbean"));
 		
 		if (this.source.isConnected() && !this.source.isBroken()) {
 			
-			log.debug(this.source + " " + this.metric + " getting mbean(s)");
+			log.debug(this.source + " " + this.metricDef + " getting mbean(s)");
 			Set<ObjectInstance> beans = new HashSet<ObjectInstance>();
 			
 			if (this.objectName.isPattern()) {
@@ -50,14 +50,14 @@ public class JmxMetric implements Runnable {
 				beans.add(this.source.getMBeanServerConnection().getObjectInstance(this.objectName));
 			}
 			
-			log.debug(this.source + " " + this.metric + " got " + beans.size() + " bean(s)");
+			log.debug(this.source + " " + this.metricDef + " got " + beans.size() + " bean(s)");
 			
 			String filter = "";
-			if (this.metric.get("filter") != null) {
-				filter = (String) this.metric.get("filter");
+			if (this.metricDef.get("filter") != null) {
+				filter = (String) this.metricDef.get("filter");
 			}
 			
-			String attr = (String) this.metric.get("attr");
+			String attr = (String) this.metricDef.get("attr");
 			if (attr != null) {
 				for (ObjectInstance bean: beans) {
 					
@@ -73,7 +73,7 @@ public class JmxMetric implements Runnable {
 	
 	private String getLabel(ObjectName objectName) {
 		
-		String label = (String) this.metric.get("label");
+		String label = (String) this.metricDef.get("label");
 		
 		//TODO find a better way to manage Upper/Lower case in "name"
 		String name = objectName.getKeyProperty("Name");
@@ -99,17 +99,17 @@ public class JmxMetric implements Runnable {
 				try {
 				
 					ObjectInstance bean = this.beans.get(label);	
-					Object value = this.source.getMBeanServerConnection().getAttribute(bean.getObjectName(), (String) this.metric.get("attr"));
+					Object value = this.source.getMBeanServerConnection().getAttribute(bean.getObjectName(), (String) this.metricDef.get("attr"));
 
 					if (value != null) {
 
 						log.debug(this.source + " " + bean.getObjectName() + 
-								" attribute " + this.metric.get("attr") +  " value is " + String.valueOf(value));
+								" attribute " + this.metricDef.get("attr") +  " value is " + String.valueOf(value));
 
 						if (value instanceof CompositeDataSupport) {
 
 							Object subvalue = null;
-							String subattr = (String) this.metric.get("subattr");
+							String subattr = (String) this.metricDef.get("subattr");
 
 							if (subattr != null) {
 								subvalue = ((CompositeDataSupport) value).get(subattr);
