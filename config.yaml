@@ -1,6 +1,11 @@
-writer: !console
-  format: "$id $source.$metric $value $timestamp"
-  
+writers: 
+  - !console
+    format: "$id $source.$metric $value $timestamp"
+ 
+  - !graphite
+    host: 172.0.0.1
+    port: 2005
+    
 sources:
 
   - !jvm

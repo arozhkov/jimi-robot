@@ -238,7 +238,7 @@ public abstract class Source implements Runnable{
 		this.label = label;
 	}
 	
-	public Writer getWriter() {
-		return this.jimi.getWriter();
+	public ArrayList<Writer> getWriters() {
+		return this.jimi.getWriters();
 	}
 }

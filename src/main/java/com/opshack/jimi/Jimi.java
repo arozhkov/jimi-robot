@@ -31,7 +31,7 @@ public class Jimi {
 	private ArrayList<Source> sources;
 	private int executorThreadPoolSize = 2;
 	
-	public Writer writer;
+	private ArrayList<Writer> writers;
 	public ScheduledExecutorService taskExecutor;
 	public HashMap metricGroups = new HashMap();
 	
@@ -74,14 +74,17 @@ public class Jimi {
 		log.info("Shared executor size is: " + executorThreadPoolSize);
 		taskExecutor = Executors.newScheduledThreadPool(executorThreadPoolSize);
 		
-		if (writer.init()) { 				// setup writer 
-			new Thread(writer).start(); 	// start writer
+		for (Writer writer: writers) {
 			
-		} else {
-			log.error("Can't initialize writer.");
-			System.exit(1);	
+			if (writer.init()) { 				// setup writer 
+				new Thread(writer).start(); 	// start writer
+				
+			} else {
+				log.error("Can't initialize writer.");
+				System.exit(1);	
+			}
 		}
-		
+
 		compileSources();					// process proxy sources
 		
 		boolean startedSources = false;		// is there any running source?
@@ -202,15 +205,16 @@ public class Jimi {
 		} 
     }
 	
+    
 	
-	public Writer getWriter() {
-		return writer;
+	public ArrayList<Writer> getWriters() {
+		return writers;
 	}
-	public void setWriter(Writer writer) {
-		this.writer = writer;
+	public void setWriters(ArrayList<Writer> writers) {
+		this.writers = writers;
 	}
-	
-	
+
+
 	public ArrayList<Source> getSources() {
 		return sources;
 	}

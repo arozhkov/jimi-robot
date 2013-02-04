@@ -39,6 +39,7 @@ public class GraphiteWriter extends Writer {
 			return false;
 		}
 		
+		log.info(this.host + ":" + this.port);
 		return true;
 	}
 	

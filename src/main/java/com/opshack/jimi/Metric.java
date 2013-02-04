@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opshack.jimi.sources.Source;
+import com.opshack.jimi.writers.Writer;
 
 public class Metric implements Runnable {
 
@@ -116,8 +117,7 @@ public class Metric implements Runnable {
 
 								if (subvalue != null && (subvalue instanceof Long || subvalue instanceof Integer)) {
 
-									this.source.getWriter().write(
-											new Event(this.source.toString(), label, String.valueOf(subvalue)));
+									this.write(new Event(this.source.toString(), label, String.valueOf(subvalue)));
 
 								} else {
 									log.error(this.source + " " + bean.getObjectName() + 
@@ -131,8 +131,7 @@ public class Metric implements Runnable {
 				
 						} else if (value instanceof Long || value instanceof Integer) {
 
-							this.source.getWriter().write(
-									new Event(this.source.toString(), label, String.valueOf(value)));
+							this.write(new Event(this.source.toString(), label, String.valueOf(value)));
 
 						} else  {
 							log.error(this.source + " " + bean.getObjectName() + 
@@ -161,5 +160,12 @@ public class Metric implements Runnable {
 			}
 		}
 	} 
+	
+	private void write(Event event) throws InterruptedException {
+		
+		for (Writer writer: this.source.getWriters()) {
+			writer.put(event);
+		}
+	}
 }
 	
