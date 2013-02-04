@@ -1,10 +1,10 @@
 package com.opshack.jimi.sources;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -13,8 +13,8 @@ import javax.management.MBeanServerConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.opshack.jimi.Jimi;
 import com.opshack.jimi.JmxMetric;
-import com.opshack.jimi.MetricGroups;
 import com.opshack.jimi.writers.Writer;
 
 
@@ -30,14 +30,13 @@ public abstract class JmxSource implements Runnable{
 	private String suffix; 
 	private List<String> metricGroupsList;
 	
-	private Writer writer;
-	private MetricGroups metricGroups;
+	private Jimi jimi;
 	
 	private boolean broken = false;
 	private boolean definitlyBroken = false;
 	
 	protected MBeanServerConnection mbeanServerConnection;
-	private ScheduledExecutorService metricExecutor;
+
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
@@ -76,7 +75,7 @@ public abstract class JmxSource implements Runnable{
 			
 		for (String list: this.metricGroupsList) {
 
-			List<Map> metrics = this.metricGroups.get(list);
+			ArrayList<Map> metrics = (ArrayList) this.jimi.metricGroups.get(list);
 			if (metrics != null && metrics.size() > 0) {
 
 				for (Map metric: metrics) {
@@ -88,7 +87,7 @@ public abstract class JmxSource implements Runnable{
 							JmxMetric jmxMetric = new JmxMetric(this, metric); 	// create JMX metric
 
 							tasks.add( 											// schedule JMX metric
-									metricExecutor.scheduleAtFixedRate(jmxMetric,
+									this.jimi.taskExecutor.scheduleAtFixedRate(jmxMetric,
 											10,
 											Long.valueOf((Integer) metric.get("rate")), 
 											TimeUnit.SECONDS)
@@ -120,8 +119,9 @@ public abstract class JmxSource implements Runnable{
 	
 	// TODO make object validation during "init" and return real status of
 	// execution
-	public boolean init(Writer writer, MetricGroups metrics, ScheduledExecutorService taskExecutor) {
+	public boolean init(Jimi jimi) {
 
+		this.jimi = jimi;
 		
 		StringBuffer buffer = new StringBuffer();
 		
@@ -137,10 +137,6 @@ public abstract class JmxSource implements Runnable{
 		
 		this.setLabel(buffer.toString());
 
-		this.writer = writer;
-		this.metricGroups = metrics;
-		
-		metricExecutor = taskExecutor;
 		this.setBroken(false);
 		
 		tasks = new HashSet<ScheduledFuture<?>>();
@@ -244,8 +240,8 @@ public abstract class JmxSource implements Runnable{
 	public void setLabel(String label) {
 		this.label = label;
 	}
-
+	
 	public Writer getWriter() {
-		return writer;
+		return this.jimi.getWriter();
 	}
 }

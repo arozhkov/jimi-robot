@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -26,15 +27,50 @@ import com.opshack.jimi.writers.Writer;
 public class Jimi {
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
-	
-	private Writer writer;
-	private ArrayList<JmxSource> sources;
-	private MetricGroups metricGroups;
-	
-	private int executorThreadPoolSize = 2;
-	private ScheduledExecutorService taskExecutor;
-	
 
+	private ArrayList<JmxSource> sources;
+	private int executorThreadPoolSize = 2;
+	
+	public Writer writer;
+	public ScheduledExecutorService taskExecutor;
+	public HashMap metricGroups;
+	
+	
+	Jimi() throws FileNotFoundException {
+		
+		if (System.getProperty("jimi.metrics") == null) {
+			System.setProperty("jimi.metrics", System.getProperty("jimi.home") + "/metrics");
+		}
+		
+		File metricsDir = new File(System.getProperty("jimi.metrics"));
+		
+		metricGroups = new HashMap();
+		
+		if (metricsDir.isDirectory()) {
+			
+			for (File metricFile: metricsDir.listFiles()) {
+				
+				if (metricFile.isFile() && metricFile.getName().endsWith("yaml")) {
+					
+					InputStream input = new FileInputStream(metricFile);
+					Yaml yaml = new Yaml();
+					
+					for (Object data : yaml.loadAll(input)) {
+						metricGroups.putAll((HashMap) data);
+					}
+				}
+			}
+		}
+		
+		if (metricGroups.isEmpty()) {
+			log.error("No metrics found in " + System.getProperty("jimi.metrics"));
+			System.exit(1);
+		} else {
+			log.info("Available metrics: " + metricGroups.keySet());
+		}
+	}
+	
+	
 	public void start() throws Exception {
 		
 		log.info("Shared executor size is: " + executorThreadPoolSize);
@@ -52,7 +88,7 @@ public class Jimi {
 		
 		boolean startedSources = false;		// is there any running source?
 		for (JmxSource source: sources) {
-			if (source.init(writer, metricGroups, taskExecutor)) {
+			if (source.init(this)) {
 				new Thread(source).start();
 				startedSources = true;		// yes
 			}
@@ -73,7 +109,7 @@ public class Jimi {
 						log.warn(source + " is broken.");
 						source.shutdown();			// shutdown and cleanup if broken
 						
-						if (source.init(writer, metricGroups, taskExecutor)) { 
+						if (source.init(this)) { 
 							new Thread(source).start(); 	// restart
 						}
 					}
@@ -118,41 +154,40 @@ public class Jimi {
 		
 	}
 	
-    public static void main( String[] args ) throws Exception {
+	
+    public static void main(String[] args) throws Exception {
+    	
+    	if (System.getProperty("jimi.home") == null) {
+			System.setProperty("jimi.home", System.getProperty("user.dir"));
+		}
     	
     	final Logger log = LoggerFactory.getLogger(Jimi.class);
-    	
-    	if (args.length < 2) {
-    		log.error("Missing parameters!\n\n java -cp ... com.opshack.jimi.Jimi path/to/config.yaml path/to/metrics.yaml\n\n");
+		
+    	if (args.length < 1) {
+    		log.error("Missing parameters!\n\n java -cp ... com.opshack.jimi.Jimi path/to/config.yaml\n\n");
     		System.exit(1);
     	}
-    	
-    	InputStream configFile = null;
-    	InputStream metricsFile = null;
-    	
-    	Jimi jimi = new Jimi();
-    	
-		try {
-			
-			// TODO better cli integration
-			log.info("Read configuration");
-	        configFile = new FileInputStream(new File(args[0]));
-	        metricsFile = new FileInputStream(new File(args[1]));
+
+    	try{
+    		
+    		InputStream configFile = new FileInputStream(new File(args[0]));
 			
 	        log.info("Load configuration");
+	        
 	        Constructor configConstructor = new Constructor(Jimi.class);
+	        
 	        configConstructor.addTypeDescription(new TypeDescription(Weblogic.class, "!weblogic"));
 	        configConstructor.addTypeDescription(new TypeDescription(WeblogicDomain.class, "!weblogicDomain"));
 	        configConstructor.addTypeDescription(new TypeDescription(Jvm.class, "!jvm"));
+	        
 	        configConstructor.addTypeDescription(new TypeDescription(GraphiteWriter.class, "!graphite"));
 	        configConstructor.addTypeDescription(new TypeDescription(GraphiteTCPWriter.class, "!graphiteTCP"));
 	        configConstructor.addTypeDescription(new TypeDescription(ConsoleWriter.class, "!console"));
-			Yaml configYaml = new Yaml(configConstructor);
-	        jimi = (Jimi) configYaml.load(configFile);
+			
+	        Yaml configYaml = new Yaml(configConstructor);
+	        Jimi jimi = (Jimi) configYaml.load(configFile);
 	        
-	        Constructor metricConstructor = new Constructor(MetricGroups.class);
-	        Yaml metricsYaml = new Yaml(metricConstructor);
-	        jimi.setMetricGroups((MetricGroups) metricsYaml.load(metricsFile));
+	        jimi.start();
 	        
 		} catch (FileNotFoundException e) {
 			
@@ -162,27 +197,11 @@ public class Jimi {
 			
 		}  catch (Exception e) {
 			
-			log.error(e.getClass() + " occured. Please check configuration files.");
+			log.error(e.getClass() + " occured. Please check configuration.");
 			e.printStackTrace();
 			System.exit(1);
 		
-		} finally { 
-			
-			if (configFile != null) {
-				configFile.close();
-			}
-			
-			if (metricsFile != null) {
-				metricsFile.close();
-			}
-		}
-		
- 
-		if (jimi != null && jimi.getMetricGroups() != null) {
-	
-			jimi.start();
-			
-		}
+		} 
     }
 	
 	
@@ -198,13 +217,6 @@ public class Jimi {
 	}
 	public void setSources(ArrayList<JmxSource> sources) {
 		this.sources = sources;
-	}
-
-	public MetricGroups getMetricGroups() {
-		return metricGroups;
-	}
-	public void setMetricGroups(MetricGroups metricGroups) {
-		this.metricGroups = metricGroups;
 	}
 	
 	public synchronized int getExecutorThreadPoolSize() {
