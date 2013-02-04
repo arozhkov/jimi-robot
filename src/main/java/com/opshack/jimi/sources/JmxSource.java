@@ -73,9 +73,9 @@ public abstract class JmxSource implements Runnable{
 		}
 		
 			
-		for (String list: this.metricGroupsList) {
+		for (String group: this.metricGroupsList) {
 
-			ArrayList<Map> metrics = (ArrayList) this.jimi.metricGroups.get(list);
+			ArrayList<Map> metrics = (ArrayList) this.jimi.metricGroups.get(group);
 			if (metrics != null && metrics.size() > 0) {
 
 				for (Map metric: metrics) {
@@ -86,7 +86,7 @@ public abstract class JmxSource implements Runnable{
 
 							JmxMetric jmxMetric = new JmxMetric(this, metric); 	// create JMX metric
 
-							tasks.add( 											// schedule JMX metric
+							this.tasks.add( 											// schedule JMX metric
 									this.jimi.taskExecutor.scheduleAtFixedRate(jmxMetric,
 											10,
 											Long.valueOf((Integer) metric.get("rate")), 
@@ -116,9 +116,6 @@ public abstract class JmxSource implements Runnable{
 			log.info(this + " tasks are initiated");
 		}
 	
-	
-	// TODO make object validation during "init" and return real status of
-	// execution
 	public boolean init(Jimi jimi) {
 
 		this.jimi = jimi;
@@ -139,8 +136,8 @@ public abstract class JmxSource implements Runnable{
 
 		this.setBroken(false);
 		
-		tasks = new HashSet<ScheduledFuture<?>>();
-		log.info(this + " initialized");
+		this.tasks = new HashSet<ScheduledFuture<?>>();
+		log.info(this + " is initialized");
 
 		return true;
 	}

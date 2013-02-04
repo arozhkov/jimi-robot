@@ -44,9 +44,9 @@ public class GraphiteWriter extends Writer {
 	
 	
 	@Override
-	public void write(Event event) throws Exception {
+	public void write(Event event) {
 		
-		String stringMessage = event.getSource() + "." + event.getLabel()
+		String stringMessage = event.getSource() + "." + event.getMetric()
 				+ " " + event.getValue() 
 				+ " " + event.getTs()/1000; // divide by 1000 to get seconds
 		

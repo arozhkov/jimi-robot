@@ -28,14 +28,11 @@ public abstract class Writer implements Runnable{
 	      }
 	      
 	    } catch (InterruptedException ex) {
-	    	Thread.currentThread().interrupt();
-	    } catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	    	log.info("Writer iterrupted.");
+		} 
 	}
 	
-	public abstract void write(Event event) throws Exception;
+	public abstract void write(Event event);
 	public abstract boolean init();
 	
 	public void put(Event event) throws InterruptedException {

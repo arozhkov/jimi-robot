@@ -8,7 +8,7 @@ public class Event implements Serializable{
 
 	private final UUID id;
 	public final String source;
-	private final String label;
+	private final String metric;
 	public final String value;
 	public final long ts;
 
@@ -16,7 +16,7 @@ public class Event implements Serializable{
 		
 		this.id = UUID.randomUUID();
 		this.source = source;
-		this.label = (String) metric.get("label");
+		this.metric = (String) metric.get("label");
 		this.value = value;
 		this.ts = System.currentTimeMillis();
 	}
@@ -25,7 +25,7 @@ public class Event implements Serializable{
 		
 		this.id = UUID.randomUUID();
 		this.source = source;
-		this.label = label;
+		this.metric = label;
 		this.value = value;
 		this.ts = System.currentTimeMillis();
 	}
@@ -39,8 +39,8 @@ public class Event implements Serializable{
 		return this.source;
 	}
 
-	public synchronized String getLabel() {
-		return label;
+	public synchronized String getMetric() {
+		return metric;
 	}
 
 	public String getValue() {

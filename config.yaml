@@ -1,5 +1,5 @@
 writer: !console
-  format: notImplemented
+  format: "$id $source.$metric $value $timestamp"
   
 sources:
 

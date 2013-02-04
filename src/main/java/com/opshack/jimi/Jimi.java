@@ -33,7 +33,7 @@ public class Jimi {
 	
 	public Writer writer;
 	public ScheduledExecutorService taskExecutor;
-	public HashMap metricGroups;
+	public HashMap metricGroups= new HashMap();
 	
 	
 	Jimi() throws FileNotFoundException {
@@ -43,8 +43,6 @@ public class Jimi {
 		}
 		
 		File metricsDir = new File(System.getProperty("jimi.metrics"));
-		
-		metricGroups = new HashMap();
 		
 		if (metricsDir.isDirectory()) {
 			
@@ -56,13 +54,13 @@ public class Jimi {
 					Yaml yaml = new Yaml();
 					
 					for (Object data : yaml.loadAll(input)) {
-						metricGroups.putAll((HashMap) data);
+						this.metricGroups.putAll((HashMap) data);
 					}
 				}
 			}
 		}
 		
-		if (metricGroups.isEmpty()) {
+		if (this.metricGroups.isEmpty()) {
 			log.error("No metrics found in " + System.getProperty("jimi.metrics"));
 			System.exit(1);
 		} else {
@@ -212,6 +210,7 @@ public class Jimi {
 		this.writer = writer;
 	}
 	
+	
 	public ArrayList<JmxSource> getSources() {
 		return sources;
 	}
@@ -219,11 +218,21 @@ public class Jimi {
 		this.sources = sources;
 	}
 	
-	public synchronized int getExecutorThreadPoolSize() {
+	
+	public int getExecutorThreadPoolSize() {
 		return executorThreadPoolSize;
 	}
-
-	public synchronized void setExecutorThreadPoolSize(int executorThreadPoolSize) {
+	public void setExecutorThreadPoolSize(int executorThreadPoolSize) {
 		this.executorThreadPoolSize = executorThreadPoolSize;
+	}
+
+
+	public ScheduledExecutorService getTaskExecutor() {
+		return taskExecutor;
+	}
+	
+	
+	public HashMap getMetricGroups() {
+		return metricGroups;
 	}
 }

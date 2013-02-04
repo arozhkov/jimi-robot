@@ -61,7 +61,7 @@ public class JmxMetric implements Runnable {
 			if (attr != null) {
 				for (ObjectInstance bean: beans) {
 					
-					if (bean.getObjectName().toString().contains(filter)) { // filter out beans
+					if (bean.getObjectName().toString().contains(filter)) { 	// filter out beans
 						String label = getLabel(bean.getObjectName());
 						this.beans.put(label, bean);
 					}

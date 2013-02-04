@@ -1,5 +1,7 @@
 package com.opshack.jimi.writers;
 
+import java.text.MessageFormat;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,20 +13,29 @@ public class ConsoleWriter extends Writer {
 	final private Logger writer = LoggerFactory.getLogger("ConsoleWriter");
 	
 	private String format;
+	private MessageFormat message; 
 	
 	@Override
 	public boolean init() {
-		// TODO Auto-generated method stub
+		
+		String[] vars = {"$id","$source","$metric","$value","$timestamp"};
+		String[] places = {"{0}","{1}","{2}","{3}","{4}"};
+		
+		for (int i=0; i<5; i++) {
+			String str = this.format.replace(vars[i], places[i]);
+			this.format = str;
+		}
+		
+		message = new MessageFormat(this.format);
 		return true;
 	}
 	
 	
 	@Override
 	public void write(Event event) {
-		writer.info(event.getId() 
-				+ " " + event.getSource() + "." + event.getLabel() 
-				+ " " + event.getValue() 
-				+ " " + event.getTs());
+
+		Object[] args = { event.getId(), event.getSource(), event.getMetric(), event.getValue(), String.valueOf(event.getTs()) };
+		writer.info(message.format(args));
 
 	}
 
