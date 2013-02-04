@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import com.opshack.jimi.Event;
 
-public class ConsoleWriter extends Writer {
+public class Console extends Writer {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
-	final private Logger writer = LoggerFactory.getLogger("ConsoleWriter");
+	final private Logger writer = LoggerFactory.getLogger("Console");
 	
 	private String format;
 	private MessageFormat message; 

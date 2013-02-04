@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.opshack.jimi.Event;
 
-public class GraphiteWriter extends Writer {
+public class GraphiteTCP extends Writer {
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	
@@ -39,7 +39,6 @@ public class GraphiteWriter extends Writer {
 			return false;
 		}
 		
-		log.info(this.host + ":" + this.port);
 		return true;
 	}
 	
