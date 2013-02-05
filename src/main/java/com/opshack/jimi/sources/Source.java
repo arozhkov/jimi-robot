@@ -84,9 +84,9 @@ public abstract class Source implements Runnable{
 						
 						try {
 
-							Metric metric = new Metric(this, metricDef); 	// create JMX metric
+							Metric metric = new Metric(this, metricDef); 		// create JMX metric
 
-							this.tasks.add( 											// schedule JMX metric
+							this.tasks.add( 									// schedule JMX metric
 									this.jimi.taskExecutor.scheduleAtFixedRate(metric,
 											10,
 											Long.valueOf((Integer) metricDef.get("rate")), 
