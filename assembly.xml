@@ -13,7 +13,7 @@
       <includes>
         <include>README*</include>
         <include>LICENSE*</include>
-        <include>*.yaml</include>
+        <include>*.yaml.example</include>
         <include>*.properties</include>
         <include>*.bat</include>
         <include>*.sh</include>
@@ -32,6 +32,13 @@
       <excludes>
         <exclude>wl*.jar</exclude>
       </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/metrics</directory>
+      <outputDirectory>metrics</outputDirectory>
+      <includes>
+        <include>*.yaml</include>
+      </includes>
     </fileSet>
   </fileSets>
 </assembly>

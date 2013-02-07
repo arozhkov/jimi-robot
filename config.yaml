@@ -12,7 +12,7 @@ sources:
     host  : 192.168.0.35
     port  : 9010
     prefix: java
-    metricsLists:
+    metrics:
       - Memory
       - MemoryPools
       - Threading
@@ -24,7 +24,7 @@ sources:
     password: weblogic01
     prefix: weblogic
     suffix: SUFFIX
-    metricsLists:
+    metrics:
       - Memory
       - MemoryPools
       - Threading

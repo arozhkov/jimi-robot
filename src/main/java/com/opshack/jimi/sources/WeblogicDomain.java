@@ -112,7 +112,7 @@ public class WeblogicDomain extends Source {
 				source.setPrefix(this.getPrefix());
 				source.setSuffix(this.getSuffix());
 				
-				source.setMetricsLists(this.getMetricsLists());
+				source.setMetrics(this.getMetrics());
 				
 				sources.add(source);
 			}

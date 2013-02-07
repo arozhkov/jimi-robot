@@ -16,12 +16,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.1</version>
@@ -94,7 +88,7 @@
 				<version>2.5.1</version>
 				<executions>
 					<execution>
-						<id>copy-dependencies</id>
+						<id>copy-lib</id>
 						<phase>package</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
@@ -108,7 +102,29 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+			<plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/metrics</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>${basedir}/metrics</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
 			<plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>

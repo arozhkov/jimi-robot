@@ -1,15 +1,10 @@
 @echo off
 setlocal
 
-set JIMI_HOME=G:\bin\jimi-0.0.1
+set JIMI_HOME=.
 set WLS_LIBS=%JIMI_HOME%\lib
 
 set JAVA_OPTS="-Duser.timezone=GMT "
-
-if "%JIMI_HOME%"=="" (
-    echo "Undefined JIMI_HOME"
-    exit 1
-)
 
 set JIMI_JAR=%JIMI_HOME%\jimi.jar
 
@@ -22,6 +17,7 @@ set CLASSPATH=%CLASSPATH%;%JIMI_HOME%\lib\snakeyaml-1.10.jar
 if NOT "%WLS_LIBS%"=="" (
     set CLASSPATH=%CLASSPATH%;%WLS_LIBS%\wljmxclient.jar
 )
+
 set CLASSPATH=%CLASSPATH%;%JIMI_JAR%
 
 

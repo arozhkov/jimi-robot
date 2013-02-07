@@ -28,7 +28,7 @@ public abstract class Source implements Runnable{
 	private String password;
 	private String prefix;
 	private String suffix; 
-	private List<String> metricGroupsList;
+	private List<String> metrics;
 	
 	private Jimi jimi;
 	
@@ -73,7 +73,7 @@ public abstract class Source implements Runnable{
 		}
 		
 			
-		for (String group: this.metricGroupsList) {
+		for (String group: this.metrics) {
 
 			ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
 			if (metricDefs != null && metricDefs.size() > 0) {
@@ -195,11 +195,11 @@ public abstract class Source implements Runnable{
 		this.password = password;
 	}
 	
-	public List<String> getMetricsLists() {
-		return metricGroupsList;
+	public List<String> getMetrics() {
+		return metrics;
 	}
-	public void setMetricsLists(List<String> metricsLists) {
-		this.metricGroupsList = metricsLists;
+	public void setMetrics(List<String> metrics) {
+		this.metrics = metrics;
 	}
 
 
