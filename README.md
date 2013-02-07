@@ -26,6 +26,7 @@ __Before you begin:__ although the code is a mess, the application is stable and
 1. Download [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic/JBoss client jars.  
 1. Unzip archive somewhere on your server.
 1. Open `jimi/run.sh` or `jimi\run.bat` and set `JIMI_HOME` variable with a path to the `jimi` directory.
+1. Copy config.yaml.example into config.yaml
 
 If you plan to work with Weblogic or JBoss servers you have follow these additional steps.
 
@@ -55,7 +56,7 @@ The last element of this file is `executorThreadPoolSize` property. It defines t
 
     sources:
       - !weblogic
-        host:     192.168.0.35
+        host:     localhost
         port:     7001
         username: weblogic
         password: weblogic01
