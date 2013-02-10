@@ -1,8 +1,17 @@
 package com.opshack.jimi.sources;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -49,6 +58,42 @@ public class Weblogic extends Source {
 				
 				throw new InterruptedException(e.getMessage() + "; occurred during connection to JMX server");
 				
+			}
+			
+			// get Weblogic server name
+			try {
+				ObjectName objectName = new ObjectName("com.bea:Type=ServerRuntime,*");
+			
+				Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
+				
+				if (objectInstances!= null && !objectInstances.isEmpty()) {
+					
+					for (ObjectInstance obj: objectInstances) {
+						Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), "Name");
+						this.setLabel((String) value);
+					}
+				}
+			} catch (MalformedObjectNameException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NullPointerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AttributeNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InstanceNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (MBeanException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ReflectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 			log.info(this + " is connected");

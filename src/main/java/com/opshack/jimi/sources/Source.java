@@ -119,25 +119,12 @@ public abstract class Source implements Runnable{
 	public boolean init(Jimi jimi) {
 
 		this.jimi = jimi;
-		
-		StringBuffer buffer = new StringBuffer();
-		
-		if (this.prefix != null) {
-			buffer.append(prefix + ".");
-		}
-		
-		buffer.append(host.replaceAll("\\.", "_") + "_" + port);
-		
-		if (this.suffix != null) {
-			buffer.append("." + suffix);
-		}
-		
-		this.setLabel(buffer.toString());
+
+		this.setLabel(host.replaceAll("\\.", "_") + "_" + port);
 
 		this.setBroken(false);
 		
 		this.tasks = new HashSet<ScheduledFuture<?>>();
-		log.info(this + " is initialized");
 
 		return true;
 	}
@@ -235,7 +222,20 @@ public abstract class Source implements Runnable{
 		return label;
 	}
 	public void setLabel(String label) {
-		this.label = label;
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		if (this.prefix != null) {
+			buffer.append(prefix + ".");
+		}
+		
+		buffer.append(label);
+		
+		if (this.suffix != null) {
+			buffer.append("." + suffix);
+		}
+
+		this.label = buffer.toString();
 	}
 	
 	public ArrayList<Writer> getWriters() {

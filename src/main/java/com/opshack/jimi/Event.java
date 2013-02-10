@@ -11,7 +11,7 @@ public class Event implements Serializable{
 	private final String metric;
 	public final String value;
 	public final long ts;
-
+	
 	public Event(String source, Map metric, String value) {
 		
 		this.id = UUID.randomUUID();
