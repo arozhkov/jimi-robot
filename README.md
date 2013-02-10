@@ -26,9 +26,9 @@ __Before you begin:__ although the code is a mess, the application is stable and
 1. Download [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic/JBoss client jars.  
 1. Unzip archive somewhere on your server.
 1. Open `jimi/run.sh` or `jimi\run.bat` and set `JIMI_HOME` variable with a path to the `jimi` directory.
-1. Copy config.yaml.example into config.yaml
+1. Copy `config.yaml.example` into `config.yaml`
 
-If you plan to work with Weblogic or JBoss servers you have follow these additional steps.
+If you plan to work with Weblogic or JBoss servers you have follow these [additional steps](https://github.com/arozhkov/jimi-robot/wiki/Weblogic-JBoss).
 
 
 ## Configuration
@@ -45,7 +45,7 @@ __YAML:__ read and understand syntax
 
 The configuration starts with the definition of writers that will be used for all sources defined in the same file. Definitions of writers and sources start with a tag referring to the object's class, like `!graphite` or `!weblogic`. Each class needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. 
 
-`metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`
+`metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
 
 The last element of this file is `executorThreadPoolSize` property. It defines the number of threads that will collect metrics.
 
