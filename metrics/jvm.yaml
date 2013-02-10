@@ -36,8 +36,25 @@ MemoryPools:
     rate:     10
     label:    10s.MemPool.$Name.committed
 
+GC:
+  - mbean:    java.lang:type=GarbageCollector,*
+    attr:     CollectionCount
+    rate:     60
+    label:    60s.gc.$Name.count
+
+  - mbean:    java.lang:type=GarbageCollector,*
+    attr:     CollectionTime
+    rate:     60
+    label:    60s.gc.$Name.time
+
 Threading:
   - mbean:    java.lang:type=Threading
     attr:     ThreadCount
     rate:     10
     label:    10s.Thread.Count
+
+System:
+  - mbean:    java.lang:type=OperatingSystem
+    attr:     ProcessCpuTime
+    rate:     10
+    label:    10s.Process.CpuTime
