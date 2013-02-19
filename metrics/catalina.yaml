@@ -1,0 +1,38 @@
+
+CatalinaGlobalRequestProcessor:
+  - mbean:    Catalina:type=GlobalRequestProcessor,*
+    attr:     bytesReceived
+    rate:     60
+    label:    60s.GlobalRequestProcessor.$Name.bytesReceived
+
+  - mbean:    Catalina:type=GlobalRequestProcessor,*
+    attr:     bytesSent
+    rate:     60
+    label:    60s.GlobalRequestProcessor.$Name.bytesSent
+
+  - mbean:    Catalina:type=GlobalRequestProcessor,*
+    attr:     errorCount
+    rate:     60
+    label:    60s.GlobalRequestProcessor.$Name.errorCount
+
+  - mbean:    Catalina:type=GlobalRequestProcessor,*
+    attr:     processingTime
+    rate:     60
+    label:    60s.GlobalRequestProcessor.$Name.processingTime
+
+  - mbean:    Catalina:type=GlobalRequestProcessor,*
+    attr:     requestCount
+    rate:     60
+    label:    60s.GlobalRequestProcessor.$Name.requestCount
+
+
+CatalinaThreadPool:
+  - mbean:    Catalina:type=ThreadPool,*
+    attr:     currentThreadCount
+    rate:     60
+    label:    60s.ThreadPool.$Name.currentThreadCount
+
+  - mbean:    Catalina:type=ThreadPool,*
+    attr:     maxThreads
+    rate:     300
+    label:    300s.ThreadPool.$Name.maxThreads
