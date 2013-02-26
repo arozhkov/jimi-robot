@@ -60,46 +60,53 @@ public class Weblogic extends Source {
 				
 			}
 			
-			// get Weblogic server name
-			try {
-				ObjectName objectName = new ObjectName("com.bea:Type=ServerRuntime,*");
-			
-				Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
-				
-				if (objectInstances!= null && !objectInstances.isEmpty()) {
-					
-					for (ObjectInstance obj: objectInstances) {
-						Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), "Name");
-						this.setLabel((String) value);
-					}
-				}
-			} catch (MalformedObjectNameException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (NullPointerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (AttributeNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InstanceNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (MBeanException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ReflectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (jimi.isUseWeblogicName()) {
+				getWeblogicName();
 			}
-			
+
 			log.info(this + " is connected");
 			
 		} else {
 			log.warn(this + " is already connected");
+		}
+	}
+	
+	private void getWeblogicName() {
+
+		try {
+			ObjectName objectName = new ObjectName("com.bea:Type=ServerRuntime,*");
+
+			Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
+
+			if (objectInstances!= null && !objectInstances.isEmpty()) {
+
+				for (ObjectInstance obj: objectInstances) {
+					Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), "Name");
+					this.setLabel((String) value);
+				}
+			}
+
+		} catch (MalformedObjectNameException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NullPointerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (AttributeNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstanceNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MBeanException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ReflectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

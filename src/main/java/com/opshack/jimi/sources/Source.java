@@ -30,7 +30,7 @@ public abstract class Source implements Runnable{
 	private String suffix; 
 	private List<String> metrics;
 	
-	private Jimi jimi;
+	protected Jimi jimi;
 	
 	private boolean broken = false;
 	private boolean definitlyBroken = false;

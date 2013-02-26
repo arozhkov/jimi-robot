@@ -78,13 +78,16 @@ public class Metric implements Runnable {
 		
 		//TODO find a better way to manage Upper/Lower case in "name"
 		String name = objectName.getKeyProperty("Name");
-		if (name == null) name = objectName.getKeyProperty("name");
-
-		log.debug("Name : " + name + "-" + objectName);
+		
+		if (name == null) {
+			name = objectName.getKeyProperty("name");
+		}
 		
 		if (name == null) {
 			return label.replace("$Name", "Undefined");
 		}
+		
+		log.debug("Name : " + name + "-" + objectName);
 		
 		return label.replace("$Name", name.replaceAll("\\W", ""));
 	}

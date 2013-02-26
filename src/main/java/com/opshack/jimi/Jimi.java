@@ -30,7 +30,8 @@ public class Jimi {
 
 	private ArrayList<Source> sources;
 	private int executorThreadPoolSize = 2;
-
+    private boolean useWeblogicName = false;
+	
 	private ArrayList<Writer> writers;
 	public ScheduledExecutorService taskExecutor;
 	public HashMap metricGroups = new HashMap();
@@ -161,7 +162,7 @@ public class Jimi {
 		if (System.getProperty("jimi.home") == null) {
 			System.setProperty("jimi.home", System.getProperty("user.dir"));
 		}
-
+		
 		final Logger log = LoggerFactory.getLogger(Jimi.class);
 
 		if (args.length < 1) {
@@ -242,4 +243,14 @@ public class Jimi {
 	public HashMap getMetricGroups() {
 		return metricGroups;
 	}
+
+	public boolean isUseWeblogicName() {
+		return useWeblogicName;
+	}
+
+	public void setUseWeblogicName(boolean useWeblogicName) {
+		this.useWeblogicName = useWeblogicName;
+	}
+	
+	
 }
