@@ -109,8 +109,8 @@ public class WeblogicDomain extends Source {
 				source.setUsername(this.getUsername());
 				source.setPassword(this.getPassword());
 				
-				source.setPrefix(this.getPrefix());
-				source.setSuffix(this.getSuffix());
+				source.setLabelFormat(this.getLabelFormat());
+				source.setPropsMBean(this.getPropsMBean());
 				
 				source.setMetrics(this.getMetrics());
 				

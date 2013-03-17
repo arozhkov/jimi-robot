@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
+import javax.management.IntrospectionException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
@@ -60,8 +62,8 @@ public class Weblogic extends Source {
 				
 			}
 			
-			if (jimi.isUseWeblogicName()) {
-				getWeblogicName();
+			if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
+				setProperties();
 			}
 
 			log.info(this + " is connected");
@@ -71,7 +73,7 @@ public class Weblogic extends Source {
 		}
 	}
 	
-	private void getWeblogicName() {
+	private void setProperties() {
 
 		try {
 			ObjectName objectName = new ObjectName("com.bea:Type=ServerRuntime,*");
@@ -81,8 +83,20 @@ public class Weblogic extends Source {
 			if (objectInstances!= null && !objectInstances.isEmpty()) {
 
 				for (ObjectInstance obj: objectInstances) {
-					Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), "Name");
-					this.setLabel((String) value);
+					
+					log.info("MBean: " + obj.getObjectName());
+					MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
+					
+					for (MBeanAttributeInfo attribute: attributes) {
+						
+						String attributeName = attribute.getName();
+						Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+						
+						this.props.put(attributeName, value);
+						log.debug("Attribute: " + attributeName + ", Value: " + value);
+					}
+					
+					break;
 				}
 			}
 
@@ -105,6 +119,9 @@ public class Weblogic extends Source {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ReflectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IntrospectionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

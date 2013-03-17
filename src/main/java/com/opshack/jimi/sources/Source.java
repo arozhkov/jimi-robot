@@ -1,7 +1,9 @@
 package com.opshack.jimi.sources;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServerConnection;
 
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +30,8 @@ public abstract class Source implements Runnable{
 	private int port;
 	private String username;
 	private String password;
-	private String prefix;
-	private String suffix; 
+	private String propsMBean;
+	private String labelFormat = "${src.host.replaceAll('\\.', '_')}_${src.port}";
 	private List<String> metrics;
 	
 	protected Jimi jimi;
@@ -36,12 +40,12 @@ public abstract class Source implements Runnable{
 	private boolean definitlyBroken = false;
 	
 	protected MBeanServerConnection mbeanServerConnection;
-
+	
+	protected HashMap<String,Object> props = new HashMap<String, Object>();
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
 	private String label; 
-	
 	
 	public abstract void setMBeanServerConnection() throws InterruptedException;
 	
@@ -204,38 +208,45 @@ public abstract class Source implements Runnable{
 		this.definitlyBroken = definitlyBroken;
 	}
 
-	public String getPrefix() {
-		return prefix;
-	}
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
+	public String getPropsMBean() {
+		return propsMBean;
 	}
 
-	public String getSuffix() {
-		return suffix;
+	public void setPropsMBean(String propsMBean) {
+		this.propsMBean = propsMBean;
 	}
-	public void setSuffix(String suffix) {
-		this.suffix = suffix;
+	
+	public HashMap<String, Object> getProps() {
+		return props;
+	}
+
+	public void setProps(HashMap<String, Object> props) {
+		this.props = props;
+	}
+
+	public String getLabelFormat() {
+		return labelFormat;
+	}
+
+	public void setLabelFormat(String labelFormat) {
+		this.labelFormat = labelFormat;
 	}
 
 	public String getLabel() {
 		return label;
 	}
+	
 	public void setLabel(String label) {
-		
-		StringBuffer buffer = new StringBuffer();
-		
-		if (this.prefix != null) {
-			buffer.append(prefix + ".");
-		}
-		
-		buffer.append(label);
-		
-		if (this.suffix != null) {
-			buffer.append("." + suffix);
-		}
 
-		this.label = buffer.toString();
+		Velocity.init();
+		VelocityContext context = new VelocityContext();
+
+        context.put("src", this);
+		
+        StringWriter w = new StringWriter();
+        Velocity.evaluate( context, w, "velocity", this.labelFormat );
+        
+		this.label = w.toString();
 	}
 	
 	public ArrayList<Writer> getWriters() {
