@@ -19,8 +19,6 @@ public class Console extends Writer {
 	private String format;
 	private MessageFormat message; 
 	
-	private VelocityContext velocityContext;
-	
 	
 	@Override
 	public boolean init() {
@@ -35,7 +33,7 @@ public class Console extends Writer {
 	@Override
 	public void write(Event event) {
 
-		velocityContext = new VelocityContext();
+		VelocityContext velocityContext = new VelocityContext();
 
 		velocityContext.put("source", event.getSource());
 		velocityContext.put("metric", event.getMetric());

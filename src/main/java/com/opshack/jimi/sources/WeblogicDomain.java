@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
@@ -109,6 +110,7 @@ public class WeblogicDomain extends Source {
 				source.setUsername(this.getUsername());
 				source.setPassword(this.getPassword());
 				
+				source.setProps(new LinkedHashMap<String, Object>(this.getProps()));
 				source.setPropsMBean(this.getPropsMBean());
 				
 				source.setMetrics(this.getMetrics());

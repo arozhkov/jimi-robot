@@ -38,7 +38,7 @@ public abstract class Source implements Runnable{
 	private int port;
 	private String username;
 	private String password;
-	private LinkedHashMap<String, Object> props = new LinkedHashMap<String, Object>();
+	private LinkedHashMap<String, Object> props;
 	private String propsMBean;
 	private List<String> metrics;
 	private String label;
@@ -49,8 +49,6 @@ public abstract class Source implements Runnable{
 	private boolean definitlyBroken = false;
 	
 	protected MBeanServerConnection mbeanServerConnection;
-	
-	//protected HashMap<String,Object> props = new HashMap<String, Object>();
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
@@ -135,7 +133,7 @@ public abstract class Source implements Runnable{
 
 		
 		if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
-			setProperties();
+			this.setProperties();
 		}
 		
 		this.tasks = new HashSet<ScheduledFuture<?>>();
@@ -165,7 +163,7 @@ public abstract class Source implements Runnable{
 						Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
 						
 						this.props.put(attributeName, value);
-						log.debug(this + " " + attributeName + " = " + value);
+						log.debug(this + " N " + attributeName + " = " + value);
 					}
 					
 					break;
@@ -259,7 +257,6 @@ public abstract class Source implements Runnable{
 		this.metrics = metrics;
 	}
 
-
 	public synchronized boolean isBroken() {
 		return broken;
 	}
@@ -275,7 +272,7 @@ public abstract class Source implements Runnable{
 	}
 
 	public String getPropsMBean() {
-		return propsMBean;
+		return this.propsMBean;
 	}
 
 	public void setPropsMBean(String propsMBean) {
@@ -283,7 +280,7 @@ public abstract class Source implements Runnable{
 	}
 	
 	public LinkedHashMap<String, Object> getProps() {
-		return props;
+		return this.props;
 	}
 	
 	public Object get(String property) {
@@ -295,12 +292,11 @@ public abstract class Source implements Runnable{
 	}
 
 	public void setLabel() {
-
 		this.label = this.getHost().replaceAll("\\.", "_") + "_" + this.getPort();
 	}
 
 	public String getLabel() {
-		return label;
+		return this.label;
 	}
 
 	public ArrayList<Writer> getWriters() {
