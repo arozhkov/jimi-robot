@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +38,7 @@ public abstract class Source implements Runnable{
 	private int port;
 	private String username;
 	private String password;
+	private LinkedHashMap<String, Object> props = new LinkedHashMap<String, Object>();
 	private String propsMBean;
 	private List<String> metrics;
 	private String label;
@@ -48,7 +50,7 @@ public abstract class Source implements Runnable{
 	
 	protected MBeanServerConnection mbeanServerConnection;
 	
-	protected HashMap<String,Object> props = new HashMap<String, Object>();
+	//protected HashMap<String,Object> props = new HashMap<String, Object>();
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
@@ -280,14 +282,18 @@ public abstract class Source implements Runnable{
 		this.propsMBean = propsMBean;
 	}
 	
-	public HashMap<String, Object> getProps() {
+	public LinkedHashMap<String, Object> getProps() {
 		return props;
 	}
-
-	public void setProps(HashMap<String, Object> props) {
-		this.props = props;
-	}	
 	
+	public Object get(String property) {
+		return props.get(property);
+	}
+
+	public void setProps(LinkedHashMap<String, Object> props) {
+		this.props = props;
+	}
+
 	public void setLabel() {
 
 		this.label = this.getHost().replaceAll("\\.", "_") + "_" + this.getPort();

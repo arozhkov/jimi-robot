@@ -4,7 +4,7 @@ import java.io.StringWriter;
 import java.text.MessageFormat;
 
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,16 +14,20 @@ public class Console extends Writer {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	final private Logger writer = LoggerFactory.getLogger("Console");
+	private VelocityEngine ve = new VelocityEngine();
 	
 	private String format;
 	private MessageFormat message; 
 	
-	VelocityContext velocityContext;
+	private VelocityContext velocityContext;
+	
 	
 	@Override
 	public boolean init() {
 		
-		Velocity.init();
+		ve.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
+		ve.init();
+		
 		return true;
 	}
 	
@@ -39,20 +43,20 @@ public class Console extends Writer {
 		velocityContext.put("ts", event.getTs());
 		
         StringWriter w = new StringWriter();
-        Velocity.evaluate( velocityContext, w, "velocity", this.getFormat());
+        ve.evaluate(velocityContext, w, "velocity", this.getFormat());
         
         writer.info(w.toString());
 	}
 
+	
 	public String getFormat() {
 		return format;
 	}
 
+	
 	public void setFormat(String format) {
 		
 		log.info("Event format: " + format);
 		this.format = format;
 	}
-	
-	
 }
