@@ -1,19 +1,26 @@
 package com.opshack.jimi.sources;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.IntrospectionException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +38,8 @@ public abstract class Source implements Runnable{
 	private String username;
 	private String password;
 	private String propsMBean;
-	private String labelFormat = "${src.host.replaceAll('\\.', '_')}_${src.port}";
 	private List<String> metrics;
+	private String label;
 	
 	protected Jimi jimi;
 	
@@ -45,8 +52,6 @@ public abstract class Source implements Runnable{
 	
 	private HashSet <ScheduledFuture<?>> tasks;
 	
-	private String label; 
-	
 	public abstract void setMBeanServerConnection() throws InterruptedException;
 	
 	public MBeanServerConnection getMBeanServerConnection() {
@@ -54,28 +59,7 @@ public abstract class Source implements Runnable{
 	}
 	
 	public void run() {
-		
-		try {
-			
-			setMBeanServerConnection(); 										// connect to source
-		
-		// TODO handle non IO exceptions as definitlyBroken	
-		} catch (Exception e) { 												// if failed 
-			
-			if (log.isDebugEnabled()) {
-				e.printStackTrace();
-			}
-			
-			log.warn(this + " " + e.getMessage()); 								// print warning message
-			try {
-				
-				Thread.sleep(30000); 											// block thread for 30 seconds
-				
-			} catch (InterruptedException e1) {}								// do nothing, anyway it's going to exit
-			
-			this.setBroken(true);												// break the source
-		}
-		
+	
 			
 		for (String group: this.metrics) {
 
@@ -122,15 +106,95 @@ public abstract class Source implements Runnable{
 	
 	public boolean init(Jimi jimi) {
 
+		this.setLabel();
 		this.jimi = jimi;
-
-		this.setLabel(host.replaceAll("\\.", "_") + "_" + port);
-
 		this.setBroken(false);
+		
+		try {
+			
+			setMBeanServerConnection(); 										// connect to source
+		
+		// TODO handle non IO exceptions as definitlyBroken	
+		} catch (Exception e) { 												// if failed 
+			
+			if (log.isDebugEnabled()) {
+				e.printStackTrace();
+			}
+			
+			log.warn(this + " " + e.getMessage()); 								// print warning message
+			try {
+				
+				Thread.sleep(30000); 											// block thread for 30 seconds
+				
+			} catch (InterruptedException e1) {}								// do nothing, anyway it's going to exit
+			
+			this.setBroken(true);												// break the source
+		}
+
+		
+		if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
+			setProperties();
+		}
 		
 		this.tasks = new HashSet<ScheduledFuture<?>>();
 
 		return true;
+	}
+	
+	
+	protected void setProperties() {
+
+		try {
+			
+			ObjectName objectName = new ObjectName(this.getPropsMBean());
+
+			Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
+
+			if (objectInstances!= null && !objectInstances.isEmpty()) {
+
+				for (ObjectInstance obj: objectInstances) {
+					
+					log.info(this + " set properties from MBean: " + obj.getObjectName());
+					MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
+					
+					for (MBeanAttributeInfo attribute: attributes) {
+						
+						String attributeName = attribute.getName();
+						Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+						
+						this.props.put(attributeName, value);
+						log.debug(this + " " + attributeName + " = " + value);
+					}
+					
+					break;
+				}
+			}
+
+		} catch (MalformedObjectNameException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NullPointerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (AttributeNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstanceNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MBeanException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ReflectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IntrospectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void shutdown() {
@@ -153,7 +217,7 @@ public abstract class Source implements Runnable{
 	}
 	
 	public String toString() {
-		return this.getLabel();
+		return this.label;
 	}
 	
 
@@ -222,33 +286,17 @@ public abstract class Source implements Runnable{
 
 	public void setProps(HashMap<String, Object> props) {
 		this.props = props;
-	}
+	}	
+	
+	public void setLabel() {
 
-	public String getLabelFormat() {
-		return labelFormat;
-	}
-
-	public void setLabelFormat(String labelFormat) {
-		this.labelFormat = labelFormat;
+		this.label = this.getHost().replaceAll("\\.", "_") + "_" + this.getPort();
 	}
 
 	public String getLabel() {
 		return label;
 	}
-	
-	public void setLabel(String label) {
 
-		Velocity.init();
-		VelocityContext context = new VelocityContext();
-
-        context.put("src", this);
-		
-        StringWriter w = new StringWriter();
-        Velocity.evaluate( context, w, "velocity", this.labelFormat );
-        
-		this.label = w.toString();
-	}
-	
 	public ArrayList<Writer> getWriters() {
 		return this.jimi.getWriters();
 	}

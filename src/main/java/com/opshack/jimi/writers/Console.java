@@ -1,7 +1,10 @@
 package com.opshack.jimi.writers;
 
+import java.io.StringWriter;
 import java.text.MessageFormat;
 
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,18 +18,12 @@ public class Console extends Writer {
 	private String format;
 	private MessageFormat message; 
 	
+	VelocityContext velocityContext;
+	
 	@Override
 	public boolean init() {
 		
-		String[] vars = {"$id","$source","$metric","$value","$timestamp"};
-		String[] places = {"{0}","{1}","{2}","{3}","{4}"};
-		
-		for (int i=0; i<5; i++) {
-			String str = this.format.replace(vars[i], places[i]);
-			this.format = str;
-		}
-		
-		message = new MessageFormat(this.format);
+		Velocity.init();
 		return true;
 	}
 	
@@ -34,9 +31,17 @@ public class Console extends Writer {
 	@Override
 	public void write(Event event) {
 
-		Object[] args = { event.getId(), event.getSource(), event.getMetric(), event.getValue(), String.valueOf(event.getTs()) };
-		writer.info(message.format(args));
+		velocityContext = new VelocityContext();
 
+		velocityContext.put("source", event.getSource());
+		velocityContext.put("metric", event.getMetric());
+		velocityContext.put("value", event.getValue());
+		velocityContext.put("ts", event.getTs());
+		
+        StringWriter w = new StringWriter();
+        Velocity.evaluate( velocityContext, w, "velocity", this.getFormat());
+        
+        writer.info(w.toString());
 	}
 
 	public String getFormat() {

@@ -130,8 +130,10 @@ public class Jimi {
 
 				counter++;
 				if (counter == 300) {
-					log.info("Jimi is running well. Sources count: "
-							+ sources.size());
+					log.info("Jimi is running well. Sources count: " + sources.size());
+					for (Writer writer : writers) {
+						log.info(writer.getClass().getName() + " recieved " + writer.getEventCounter() + " events");
+					}
 					counter = 0;
 				}
 			}
