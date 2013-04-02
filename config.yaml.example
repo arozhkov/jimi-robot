@@ -1,18 +1,21 @@
 writers: 
   - !console
-    format: "$id $source.$metric $value $timestamp"
+    format: "${source.label} ${metric} ${value} ${ts}"
  
   - !graphite
     host: 172.0.0.1
     port: 2003
+    format: "${source.label}.${metric} ${value} ${ts}"
         
 sources:
   - !jvm
     host  : 172.0.0.1
     port  : 9001
-    prefix: jimi
     metrics:
       - Memory
+      - MemoryPools
+      - GC
       - Threading
+      - System
       
 executorThreadPoolSize: 2
