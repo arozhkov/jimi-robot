@@ -112,7 +112,7 @@
 				<version>2.6</version>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-metrics</id>
 						<!-- here the phase you need -->
 						<phase>validate</phase>
 						<goals>
@@ -128,6 +128,23 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+            <id>copy-config</id>
+            <!-- here the phase you need -->
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/config</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/config</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
 				</executions>
 			</plugin>
 			<plugin>
