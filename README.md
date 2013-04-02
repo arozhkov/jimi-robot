@@ -44,7 +44,9 @@ __YAML:__ read and understand syntax
 
 The configuration starts with the definition of writers that will be used for all sources defined in the same file. Definitions of writers and sources start with a tag referring to the object's class, like `!graphite` or `!jvm`. Each class needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. 
 
-`metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
+The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server.
+
+Only one source is defined `!jvm`, you may need to update `host` and `port` properties. `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
 
 The last element of this file is `executorThreadPoolSize` property. It defines the number of threads that will collect metrics.
 
@@ -76,7 +78,7 @@ executorThreadPoolSize: 2
 ## Usage
 
 ```bash
-run.sh <name_of_config_file>
+run.sh <name_of_config_file_without_extension>
 ```
 
 ## Ideas behind this project
