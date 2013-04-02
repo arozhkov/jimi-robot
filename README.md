@@ -24,8 +24,8 @@
 __Before you begin:__ although the code is a mess, the application is stable and does what it is supposed to do.  I'm currently working on improvements.
 
 1. Download latest version of [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic/JBoss client jars.  
-1. Unzip archive somewhere on your server.
-1. Copy `jimi/config/jimi.yaml.example` into `jimi/config/jimi.yaml` and modify it according to your needs.
+1. Unzip archive somewhere on your server. We are going to refer to this place as `JIMI_HOME`.
+1. Copy `JIMI_HOME/config/jimi.yaml.example` into `JIMI_HOME/config/jimi.yaml` and modify it according to your needs.
 
 If you plan to work with Weblogic or JBoss servers you have to follow these [additional steps](https://github.com/arozhkov/jimi-robot/wiki/Weblogic-JBoss).
 
@@ -75,8 +75,9 @@ executorThreadPoolSize: 2
 
 ## Usage
 
-    run.sh <name_of_config_file>
-
+```bash
+run.sh <name_of_config_file>
+```
 
 ## Ideas behind this project
 
