@@ -23,17 +23,16 @@
 
 __Before you begin:__ although the code is a mess, the application is stable and does what it is supposed to do.  I'm currently working on improvements.
 
-1. Download [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic/JBoss client jars.  
+1. Download latest version of [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic/JBoss client jars.  
 1. Unzip archive somewhere on your server.
-1. Open `jimi/run.sh` or `jimi\run.bat` and set `JIMI_HOME` variable with a path to the `jimi` directory.
-1. Copy `config.yaml.example` into `config.yaml` and modify it according to your needs.
+1. Copy `jimi/config/jimi.yaml.example` into `jimi/config/jimi.yaml` and modify it according to your needs.
 
-If you plan to work with Weblogic or JBoss servers you have follow these [additional steps](https://github.com/arozhkov/jimi-robot/wiki/Weblogic-JBoss).
+If you plan to work with Weblogic or JBoss servers you have to follow these [additional steps](https://github.com/arozhkov/jimi-robot/wiki/Weblogic-JBoss).
 
 
 ## Configuration
 
-All Jimi configuration defined in one file - `config.yaml`. You can name this file as you want, but here we will use highlighted name for consistency.
+All Jimi configuration defined in one file - `jimi.yaml`. You can name this file as you want, but here we will use highlighted name for consistency.
 
 __YAML:__ read and understand syntax
 > [wikipedia](http://en.wikipedia.org/wiki/YAML)  
@@ -41,36 +40,42 @@ __YAML:__ read and understand syntax
 > [snakeyaml](http://code.google.com/p/snakeyaml/wiki/Documentation)  
 
 
-## _config.yaml_
+## _jimi.yaml_
 
-The configuration starts with the definition of writers that will be used for all sources defined in the same file. Definitions of writers and sources start with a tag referring to the object's class, like `!graphite` or `!weblogic`. Each class needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. 
+The configuration starts with the definition of writers that will be used for all sources defined in the same file. Definitions of writers and sources start with a tag referring to the object's class, like `!graphite` or `!jvm`. Each class needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. 
 
 `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
 
 The last element of this file is `executorThreadPoolSize` property. It defines the number of threads that will collect metrics.
 
-    writers: 
-    - !graphite
-        host: localhost
-        port: 2003
-
-    sources:
-      - !weblogic
-        host:     localhost
-        port:     7001
-        username: weblogic
-        password: weblogic01
-        prefix:   wls
-        metrics:
-          - Memory
-          - Threading
-          
-    executorThreadPoolSize: 2
+```yaml
+writers: 
+  - !console
+    format: "${source.label} ${metric} ${value} ${ts}"
+ 
+  - !graphite
+    host: 172.0.0.1
+    port: 2003
+    format: "jimi.${source.label}.${metric} ${value} ${ts}"
+        
+sources:
+  - !jvm
+    host  : 172.0.0.1
+    port  : 9001
+    metrics:
+      - Memory
+      - MemoryPools
+      - GC
+      - Threading
+      - System
+      
+executorThreadPoolSize: 2
+```
 
 
 ## Usage
 
-    run.sh path/to/config.yaml
+    run.sh <name_of_config_file>
 
 
 ## Ideas behind this project

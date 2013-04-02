@@ -5,7 +5,7 @@ writers:
   - !graphite
     host: 172.0.0.1
     port: 2003
-    format: "${source.label}.${metric} ${value} ${ts}"
+    format: "jimi.${source.label}.${metric} ${value} ${ts}"
         
 sources:
   - !jvm
