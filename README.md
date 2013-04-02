@@ -35,7 +35,6 @@ If you plan to work with Weblogic or JBoss servers you have to follow these [add
 All Jimi configuration defined in one file - `jimi.yaml`. You can name this file as you want, but here we will use highlighted name for consistency.
 
 __YAML:__ read and understand syntax
-> [wikipedia](http://en.wikipedia.org/wiki/YAML)  
 > [yaml.org](http://yaml.org/spec/1.1/)  
 > [snakeyaml](http://code.google.com/p/snakeyaml/wiki/Documentation)  
 
