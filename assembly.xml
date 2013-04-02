@@ -38,8 +38,15 @@
 			<directory>${project.build.directory}/metrics</directory>
 			<outputDirectory>metrics</outputDirectory>
 			<includes>
-				<include>*.yaml</include>
+				<include>*.*</include>
 			</includes>
 		</fileSet>
+		<fileSet>
+      <directory>${project.build.directory}/config</directory>
+      <outputDirectory>config</outputDirectory>
+      <includes>
+        <include>*.*</include>
+      </includes>
+    </fileSet>
 	</fileSets>
 </assembly>
