@@ -3,6 +3,7 @@ package com.opshack.jimi;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,15 +13,16 @@ public class Event implements Serializable{
 
 	private final UUID id;
 	public final Source source;
-	private final String metric;
+	private final Map metric;
 	public final String value;
 	public final Timestamp ts;
 	
-	public Event(Source source, String metric, String value) {
+	public Event(Source source, Map metricDef, String label, String value) {
 		
 		this.id = UUID.randomUUID();
 		this.source = source;
-		this.metric = metric;
+		this.metric = new HashMap(metricDef);
+		this.metric.put("label", label);
 		this.value = value;
 		this.ts = new Timestamp(System.currentTimeMillis());
 	}
@@ -28,13 +30,12 @@ public class Event implements Serializable{
 	public UUID getId() {
 		return this.id;
 	}
-	
 
 	public Source getSource() {
 		return this.source;
 	}
 
-	public synchronized String getMetric() {
+	public Map getMetric() {
 		return metric;
 	}
 

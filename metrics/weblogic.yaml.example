@@ -2,95 +2,95 @@ WLSThreading:
   - mbean:    com.bea:Name=ThreadPoolRuntime,Type=ThreadPoolRuntime,*
     attr:     CompletedRequestCount
     rate:     60
-    label:    60s.WLSThreadPool.CompletedRequestCount
+    label:    WLSThreadPool.CompletedRequestCount
 
   - mbean:    com.bea:Name=ThreadPoolRuntime,Type=ThreadPoolRuntime,*
     attr:     ExecuteThreadTotalCount
     rate:     60
-    label:    60s.WLSThreadPool.ExecuteThreadTotalCount
+    label:    WLSThreadPool.ExecuteThreadTotalCount
 
   - mbean:    com.bea:Name=ThreadPoolRuntime,Type=ThreadPoolRuntime,*
     attr:     HoggingThreadCount
     rate:     60
-    label:    60s.WLSThreadPool.HoggingThreadCount
+    label:    WLSThreadPool.HoggingThreadCount
 
   - mbean:    com.bea:Name=ThreadPoolRuntime,Type=ThreadPoolRuntime,*
     attr:     PendingUserRequestCount
     rate:     60
-    label:    60s.WLSThreadPool.PendingUserRequestCount
+    label:    WLSThreadPool.PendingUserRequestCount
 
 WLSCluster: 
   - mbean:    com.bea:Type=ClusterRuntime,*
     attr:     PrimaryCount
     rate:     60
-    label:    60s.WLSCluster.PrimaryCount
+    label:    WLSCluster.PrimaryCount
 
   - mbean:    com.bea:Type=ClusterRuntime,*
     attr:     SecondaryCount
     rate:     60
-    label:    60s.WLSCluster.SecondaryCount
+    label:    WLSCluster.SecondaryCount
 
   - mbean:    com.bea:Type=ClusterRuntime,*
     attr:     ResendRequestsCount
     rate:     60
-    label:    60s.WLSCluster.ResendRequestsCount
+    label:    WLSCluster.ResendRequestsCount
 
   - mbean:    com.bea:Type=ClusterRuntime,*
     attr:     MulticastMessagesLostCount
     rate:     60
-    label:    60s.WLSCluster.MulticastMessagesLostCount
+    label:    WLSCluster.MulticastMessagesLostCount
 
   - mbean:    com.bea:Type=ClusterRuntime,*
     attr:     AliveServerCount
     rate:     10
-    label:    10s.WLSCluster.AliveServerCount
+    label:    WLSCluster.AliveServerCount
 
 WLSWorkManagerDefault:
   - mbean:    com.bea:Name=weblogic.kernel.Default,Type=WorkManagerRuntime,*
     attr:     CompletedRequests
     rate:     60
-    label:    60s.WLSWorkManager.kernelDefault.CompletedRequests
+    label:    WLSWorkManager.kernelDefault.CompletedRequests
 
   - mbean:    com.bea:Name=weblogic.kernel.Default,Type=WorkManagerRuntime,*
     attr:     PendingRequests
     rate:     60
-    label:    60s.WLSWorkManager.kernelDefault.PendingRequests
+    label:    WLSWorkManager.kernelDefault.PendingRequests
 
   - mbean:    com.bea:Name=weblogic.kernel.Default,Type=WorkManagerRuntime,*
     attr:     StuckThreadCount
     rate:     60
-    label:    60s.WLSWorkManager.kernelDefault.StuckThreadCount
+    label:    WLSWorkManager.kernelDefault.StuckThreadCount
 
 WLSJDBC:
   - mbean:    com.bea:Type=JDBCDataSourceRuntime,*
     attr:     CurrCapacity
     rate:     60
-    label:    60s.WLSjdbc.$Name.CurrCapacity
+    label:    WLSjdbc.$Name.CurrCapacity
 
   - mbean:    com.bea:Type=JDBCDataSourceRuntime,*
     attr:     ReserveRequestCount
     rate:     60
-    label:    60s.WLSjdbc.$Name.ReserveRequestCount
+    label:    WLSjdbc.$Name.ReserveRequestCount
 
   - mbean:    com.bea:Type=JDBCDataSourceRuntime,*
     attr:     WaitingForConnectionTotal
     rate:     60
-    label:    60s.WLSjdbc.$Name.WaitingForConnectionTotal
+    label:    WLSjdbc.$Name.WaitingForConnectionTotal
 
   - mbean:    com.bea:Type=JDBCDataSourceRuntime,*
     attr:     FailedReserveRequestCount
     rate:     60
-    label:    60s.WLSjdbc.$Name.FailedReserveRequestCount
+    label:    WLSjdbc.$Name.FailedReserveRequestCount
 
 WLSNetwork:
   - mbean:    com.bea:Type=ServerChannelRuntime,*
     attr:     BytesReceivedCount
     filter:   Default
     rate:     10
-    label:    10s.WLSnetwork.$Name.BytesReceived
+    label:    WLSnetwork.$Name.BytesReceived
 
   - mbean:    com.bea:Type=ServerChannelRuntime,*
     attr:     BytesSentCount
     filter:   Default
     rate:     10
-    label:    10s.WLSnetwork.$Name.BytesSent
+    label:    WLSnetwork.$Name.BytesSent
