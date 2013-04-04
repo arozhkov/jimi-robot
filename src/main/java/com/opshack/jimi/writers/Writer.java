@@ -12,6 +12,7 @@ public abstract class Writer implements Runnable{
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	private LinkedBlockingQueue<Event> writerQueue = new LinkedBlockingQueue<Event>(5000);
 	private long eventCounter = 0;
+	private long eventsSize = 0;
 	
 	public void run() {
 		
@@ -38,10 +39,18 @@ public abstract class Writer implements Runnable{
 	
 	public void put(Event event) throws InterruptedException {
 		writerQueue.put(event);
-		//eventCounter++;
+		eventCounter++;
 	}
 
 	public long getEventCounter() {
 		return eventCounter;
+	}
+
+	public long getEventsSize() {
+		return eventsSize;
+	}
+
+	public void setEventsSize(long eventSize) {
+		this.eventsSize = this.eventsSize + eventSize;
 	}
 }

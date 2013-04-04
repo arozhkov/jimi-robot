@@ -55,16 +55,12 @@ public class Graphite extends Writer {
 	@Override
 	public void write(Event event) {
 		
-		//String stringMessage = event.getSource() + "." + event.getMetric()
-		//		+ " " + event.getValue() 
-		//		+ " " + event.getTs()/1000; // divide by 1000 to get seconds
-		
 		VelocityContext velocityContext = new VelocityContext();
 
 		velocityContext.put("source", event.getSource());
 		velocityContext.put("metric", event.getMetric());
 		velocityContext.put("value", event.getValue());
-		velocityContext.put("ts", event.getTs()/1000);
+		velocityContext.put("ts", event.getTs().getS());
 		
         StringWriter w = new StringWriter();
         ve.evaluate(velocityContext, w, "velocity", this.getFormat());
@@ -74,6 +70,7 @@ public class Graphite extends Writer {
 		log.debug("Graphite: " + event.getId() + " " + stringMessage + " to " + this.address + ":" + this.port);
 		
 		byte[] byteMessage = stringMessage.getBytes();
+		setEventsSize(byteMessage.length);
 		
 		DatagramPacket packet = new DatagramPacket(byteMessage, byteMessage.length, this.address, this.port);
 		

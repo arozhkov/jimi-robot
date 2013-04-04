@@ -43,6 +43,7 @@ public class Console extends Writer {
         StringWriter w = new StringWriter();
         ve.evaluate(velocityContext, w, "velocity", this.getFormat());
         
+        setEventsSize(w.toString().getBytes().length);
         writer.info(w.toString());
 	}
 
