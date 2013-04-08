@@ -37,8 +37,7 @@ public class Jimi {
 	Jimi() throws FileNotFoundException {
 
 		if (System.getProperty("jimi.metrics") == null) {
-			System.setProperty("jimi.metrics", System.getProperty("jimi.home")
-					+ "/metrics");
+			System.setProperty("jimi.metrics", System.getProperty("jimi.home") + "/metrics");
 		}
 
 		File metricsDir = new File(System.getProperty("jimi.metrics"));
@@ -61,10 +60,12 @@ public class Jimi {
 		}
 
 		if (this.metricGroups.isEmpty()) {
-			log.error("No metrics found in "
-					+ System.getProperty("jimi.metrics"));
+			
+			log.error("No metrics found in " + System.getProperty("jimi.metrics"));
 			System.exit(1);
+			
 		} else {
+			
 			log.info("Available metrics: " + metricGroups.keySet());
 		}
 	}
@@ -118,7 +119,7 @@ public class Jimi {
 			if (counter == 300) {
 				log.info("Jimi is running well. Sources count: " + sources.size());
 				for (Writer writer : writers) {
-					log.info(writer.getClass().getName() + " recieved " + writer.getEventCounter() + " events, total size is " + writer.getEventsSize());
+					log.info(writer.getClass().getName() + " recieved " + writer.getEventCounter() + " events, total size is " + writer.getEventsSize() + " bytes.");
 				}
 				counter = 0;
 			}
@@ -165,19 +166,13 @@ public class Jimi {
 
 			Constructor configConstructor = new Constructor(Jimi.class);
 
-			configConstructor.addTypeDescription(new TypeDescription(
-					Weblogic.class, "!weblogic"));
-			configConstructor.addTypeDescription(new TypeDescription(
-					WeblogicDomain.class, "!weblogicDomain"));
-			configConstructor.addTypeDescription(new TypeDescription(Jvm.class,
-					"!jvm"));
+			configConstructor.addTypeDescription(new TypeDescription(Weblogic.class, "!weblogic"));
+			configConstructor.addTypeDescription(new TypeDescription(WeblogicDomain.class, "!weblogicDomain"));
+			configConstructor.addTypeDescription(new TypeDescription(Jvm.class,	"!jvm"));
 
-			configConstructor.addTypeDescription(new TypeDescription(
-					Graphite.class, "!graphite"));
-			//configConstructor.addTypeDescription(new TypeDescription(
-			//		GraphiteTCP.class, "!graphiteTCP"));
-			configConstructor.addTypeDescription(new TypeDescription(
-					Console.class, "!console"));
+			configConstructor.addTypeDescription(new TypeDescription(Graphite.class, "!graphite"));
+			//configConstructor.addTypeDescription(new TypeDescription(GraphiteTCP.class, "!graphiteTCP"));
+			configConstructor.addTypeDescription(new TypeDescription(Console.class, "!console"));
 
 			Yaml configYaml = new Yaml(configConstructor);
 			Jimi jimi = (Jimi) configYaml.load(configFile);
