@@ -87,56 +87,43 @@ public class Jimi {
 
 		compileSources(); // process proxy sources
 
-		boolean startedSources = false; // is there any running source?
-		for (Source source : sources) {
-			if (source.init(this)) {
-				new Thread(source).start();
-				startedSources = true; // yes
-			}
-		}
+		int counter = 0;
+		while (true) {
 
-		if (!startedSources) { // if not, stop execution
-			log.info("There is nothing to do, check configuration.");
-			System.exit(0);
+			for (Source source : sources) {
 
-		} else {
-
-			int counter = 0;
-			while (true) {
-
-				for (Source source : sources) {
-
-					if (source.isBroken()) { // check source state
-						log.warn(source + " is broken.");
-						source.shutdown(); // shutdown and cleanup if broken
-
-						if (source.init(this)) {
-							new Thread(source).start(); // restart
-						}
+				if (source.isBroken()) { // check source state
+					
+					if (source.getLabel() != null) {
+						source.shutdown(); // shutdown and cleanup
 					}
-				}
 
-				try {
-
-					Thread.sleep(1000); // sleep for 1 second then re-check
-
-				} catch (InterruptedException e) {
-					log.error("Thread interrupted.");
-					e.printStackTrace();
-					System.exit(1);
-				}
-
-				counter++;
-				if (counter == 300) {
-					log.info("Jimi is running well. Sources count: " + sources.size());
-					for (Writer writer : writers) {
-						log.info(writer.getClass().getName() + " recieved " + writer.getEventCounter() + " events, total size is " + writer.getEventsSize());
+					if (source.init(this)) {
+						new Thread(source).start();
 					}
-					counter = 0;
 				}
 			}
 
+			try {
+
+				Thread.sleep(1000); // sleep for 1 second then re-check
+
+			} catch (InterruptedException e) {
+				log.error("Thread interrupted.");
+				e.printStackTrace();
+				System.exit(1);
+			}
+
+			counter++;
+			if (counter == 300) {
+				log.info("Jimi is running well. Sources count: " + sources.size());
+				for (Writer writer : writers) {
+					log.info(writer.getClass().getName() + " recieved " + writer.getEventCounter() + " events, total size is " + writer.getEventsSize());
+				}
+				counter = 0;
+			}
 		}
+
 	}
 
 	private void compileSources() throws Exception {

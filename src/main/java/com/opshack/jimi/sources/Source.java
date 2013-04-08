@@ -45,12 +45,12 @@ public abstract class Source implements Runnable{
 	
 	protected Jimi jimi;
 	
-	private boolean broken = false;
-	private boolean definitlyBroken = false;
+	private boolean broken = true;
+	private boolean definitlyBroken = true;
 	
 	protected MBeanServerConnection mbeanServerConnection;
 	
-	private HashSet <ScheduledFuture<?>> tasks;
+	private HashSet <ScheduledFuture<?>> tasks = new HashSet<ScheduledFuture<?>>();
 	
 	public abstract void setMBeanServerConnection() throws InterruptedException;
 	
@@ -113,8 +113,11 @@ public abstract class Source implements Runnable{
 		try {
 			
 			setMBeanServerConnection(); 										// connect to source
+			
+			if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
+				this.setProperties();
+			}
 		
-		// TODO handle non IO exceptions as definitlyBroken	
 		} catch (Exception e) { 												// if failed 
 			
 			if (log.isDebugEnabled()) {
@@ -130,80 +133,51 @@ public abstract class Source implements Runnable{
 			
 			this.setBroken(true);												// break the source
 		}
-
-		
-		if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
-			this.setProperties();
-		}
 		
 		this.tasks = new HashSet<ScheduledFuture<?>>();
 
-		return true;
+		return !this.isBroken();
 	}
 	
 	
-	protected void setProperties() {
+	protected void setProperties() throws Exception {
 
-		try {
-			
-			ObjectName objectName = new ObjectName(this.getPropsMBean());
+		ObjectName objectName = new ObjectName(this.getPropsMBean());
 
-			Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
+		Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
 
-			if (objectInstances!= null && !objectInstances.isEmpty()) {
+		if (objectInstances!= null && !objectInstances.isEmpty()) {
 
-				for (ObjectInstance obj: objectInstances) {
-					
-					log.info(this + " set properties from MBean: " + obj.getObjectName());
-					MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
-					
-					for (MBeanAttributeInfo attribute: attributes) {
-						
-						String attributeName = attribute.getName();
-						Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
-						
-						this.props.put(attributeName, value);
-						log.debug(this + " N " + attributeName + " = " + value);
-					}
-					
-					break;
+			for (ObjectInstance obj: objectInstances) {
+
+				log.info(this + " set properties from MBean: " + obj.getObjectName());
+				MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
+
+				for (MBeanAttributeInfo attribute: attributes) {
+
+					String attributeName = attribute.getName();
+					Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+
+					this.props.put(attributeName, value);
+					log.debug(this + " N " + attributeName + " = " + value);
 				}
-			}
 
-		} catch (MalformedObjectNameException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AttributeNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstanceNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MBeanException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ReflectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IntrospectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+				break;
+			}
 		}
+
 	}
 
 	public void shutdown() {
 	
-		for (ScheduledFuture<?> task: tasks) {
-			task.cancel(true);
-			log.debug(this + " task cancelation status is " + task.isCancelled());
+		if ( !this.tasks.isEmpty() ) {
+			
+			for (ScheduledFuture<?> task: tasks) {
+				task.cancel(true);
+				log.debug(this + " task cancelation status is " + task.isCancelled());
+			}
 		}
-		
+
 		this.mbeanServerConnection = null;
 		log.info(this + " tasks are canceled");
 	}

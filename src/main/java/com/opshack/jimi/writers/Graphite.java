@@ -60,7 +60,7 @@ public class Graphite extends Writer {
 		velocityContext.put("source", event.getSource());
 		velocityContext.put("metric", event.getMetric());
 		velocityContext.put("value", event.getValue());
-		velocityContext.put("ts", event.getTs().getS());
+		velocityContext.put("ts", event.getTs());
 		
         StringWriter w = new StringWriter();
         ve.evaluate(velocityContext, w, "velocity", this.getFormat());
