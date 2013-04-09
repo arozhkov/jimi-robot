@@ -21,6 +21,7 @@ import com.opshack.jimi.sources.Weblogic;
 import com.opshack.jimi.sources.WeblogicDomain;
 import com.opshack.jimi.writers.Console;
 import com.opshack.jimi.writers.Graphite;
+import com.opshack.jimi.writers.Kafka;
 import com.opshack.jimi.writers.Writer;
 
 public class Jimi {
@@ -171,8 +172,8 @@ public class Jimi {
 			configConstructor.addTypeDescription(new TypeDescription(Jvm.class,	"!jvm"));
 
 			configConstructor.addTypeDescription(new TypeDescription(Graphite.class, "!graphite"));
-			//configConstructor.addTypeDescription(new TypeDescription(GraphiteTCP.class, "!graphiteTCP"));
 			configConstructor.addTypeDescription(new TypeDescription(Console.class, "!console"));
+			configConstructor.addTypeDescription(new TypeDescription(Kafka.class, "!kafka"));
 
 			Yaml configYaml = new Yaml(configConstructor);
 			Jimi jimi = (Jimi) configYaml.load(configFile);
