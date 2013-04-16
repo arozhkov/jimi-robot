@@ -1,5 +1,6 @@
 package com.opshack.jimi.writers;
 
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ public abstract class Writer implements Runnable{
 	private LinkedBlockingQueue<Event> writerQueue = new LinkedBlockingQueue<Event>(5000);
 	private long eventCounter = 0;
 	private long eventsSize = 0;
+	private ArrayList<String> filter;
 	
 	public void run() {
 		
@@ -34,6 +36,21 @@ public abstract class Writer implements Runnable{
 		} 
 	}
 	
+	public boolean valide(Event event) {
+		
+		if (this.filter == null) return true;
+		
+		for (String token: this.filter) {
+			
+			String metricLabel = (String) event.getMetric().get("label");
+			
+			if ( metricLabel.contains(token) ) return true;
+			log.debug("Event is invalid: " + metricLabel);
+		}
+
+		return false;
+	}
+	
 	public abstract void write(Event event);
 	public abstract boolean init();
 	
@@ -52,5 +69,13 @@ public abstract class Writer implements Runnable{
 
 	public void setEventsSize(long eventSize) {
 		this.eventsSize = this.eventsSize + eventSize;
+	}
+	
+	public ArrayList<String> getFilter() {
+		return filter;
+	}
+
+	public void setFilter(ArrayList<String> filter) {
+		this.filter = filter;
 	}
 }

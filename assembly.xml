@@ -18,6 +18,7 @@
 				<include>*.properties</include>
 				<include>*.bat</include>
 				<include>*.sh</include>
+				<include>*.policy</include>
 			</includes>
 		</fileSet>
 		<fileSet>

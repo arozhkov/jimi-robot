@@ -1,6 +1,7 @@
 package com.opshack.jimi.writers;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -25,7 +26,7 @@ public class Kafka extends Writer {
 	
 	private String topic;
 	private String message;
-	private Map<String, String> props;
+	private Map<String, String> props;	
 	
 	
 	@Override
@@ -54,27 +55,30 @@ public class Kafka extends Writer {
 	@Override
 	public void write(Event event) {
 		
-		VelocityContext velocityContext = new VelocityContext();
-
-		velocityContext.put("source", event.getSource());
-		velocityContext.put("metric", event.getMetric());
-		velocityContext.put("value", event.getValue());
-		velocityContext.put("ts", event.getTs());
+		if ( valide(event) ) {
 		
-        StringWriter w1 = new StringWriter();
-        ve.evaluate(velocityContext, w1, "velocity", this.getTopic());
-        
-        StringWriter w2 = new StringWriter();
-        ve.evaluate(velocityContext, w2, "velocity", this.getMessage());
-        
-        String stringTopic =  w1.toString();
-        String stringMessage =  w2.toString();
-        
-		byte[] byteMessage = stringMessage.getBytes();
-		setEventsSize(byteMessage.length);
-
-		ProducerData<String, String> data = new ProducerData<String, String>(stringTopic, stringMessage);
-		kafkaProducer.send(data);
+			VelocityContext velocityContext = new VelocityContext();
+	
+			velocityContext.put("source", event.getSource());
+			velocityContext.put("metric", event.getMetric());
+			velocityContext.put("value", event.getValue());
+			velocityContext.put("ts", event.getTs());
+			
+	        StringWriter w1 = new StringWriter();
+	        ve.evaluate(velocityContext, w1, "velocity", this.getTopic());
+	        
+	        StringWriter w2 = new StringWriter();
+	        ve.evaluate(velocityContext, w2, "velocity", this.getMessage());
+	        
+	        String stringTopic =  w1.toString();
+	        String stringMessage =  w2.toString();
+	        
+			byte[] byteMessage = stringMessage.getBytes();
+			setEventsSize(byteMessage.length);
+	
+			ProducerData<String, String> data = new ProducerData<String, String>(stringTopic, stringMessage);
+			kafkaProducer.send(data);
+		}
 		
 	}
 
@@ -104,6 +108,5 @@ public class Kafka extends Writer {
 	public void setProps(Map<String, String> props) {
 		this.props = props;
 	}
-	
 	
 }

@@ -2,6 +2,7 @@ package com.opshack.jimi.writers;
 
 import java.io.StringWriter;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -32,22 +33,24 @@ public class Console extends Writer {
 	
 	@Override
 	public void write(Event event) {
-
-		VelocityContext velocityContext = new VelocityContext();
-
-		velocityContext.put("source", event.getSource());
-		velocityContext.put("metric", event.getMetric());
-		velocityContext.put("value", event.getValue());
-		velocityContext.put("ts", event.getTs());
 		
-        StringWriter w = new StringWriter();
-        ve.evaluate(velocityContext, w, "velocity", this.getFormat());
-        
-        setEventsSize(w.toString().getBytes().length);
-        writer.info(w.toString());
+		if ( valide(event) ) {
+			
+			VelocityContext velocityContext = new VelocityContext();
+
+			velocityContext.put("source", event.getSource());
+			velocityContext.put("metric", event.getMetric());
+			velocityContext.put("value", event.getValue());
+			velocityContext.put("ts", event.getTs());
+			
+	        StringWriter w = new StringWriter();
+	        ve.evaluate(velocityContext, w, "velocity", this.getFormat());
+	        
+	        setEventsSize(w.toString().getBytes().length);
+	        writer.info(w.toString());
+		}
 	}
 
-	
 	public String getFormat() {
 		return format;
 	}
@@ -58,4 +61,5 @@ public class Console extends Writer {
 		log.info("Event format: " + format);
 		this.format = format;
 	}
+
 }
