@@ -45,7 +45,7 @@ The configuration starts with the definition of writers that will be used for al
 
 The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server.
 
-Only one source is defined `!jvm`, you may need to update `host` and `port` properties. `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
+Only one source is defined, tag `!jvm` tells us it's a standard JVM JMX server. You may need to update `host` and `port` properties. `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
 
 The last element of this file is `executorThreadPoolSize` property. It defines the number of threads that will collect metrics.
 
