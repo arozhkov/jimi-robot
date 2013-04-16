@@ -1,7 +1,5 @@
 package com.opshack.jimi.writers;
 
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -11,7 +9,6 @@ import kafka.javaapi.producer.ProducerData;
 import kafka.producer.ProducerConfig;
 
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +18,7 @@ public class Kafka extends Writer {
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 	
-	private VelocityEngine ve = new VelocityEngine();
+	
 	Producer<String, String> kafkaProducer;
 	
 	private String topic;
@@ -31,9 +28,6 @@ public class Kafka extends Writer {
 	
 	@Override
 	public boolean init() {
-
-		ve.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
-		ve.init();
 
 		Properties config = new Properties();
 		
@@ -57,21 +51,9 @@ public class Kafka extends Writer {
 		
 		if ( valide(event) ) {
 		
-			VelocityContext velocityContext = new VelocityContext();
-	
-			velocityContext.put("source", event.getSource());
-			velocityContext.put("metric", event.getMetric());
-			velocityContext.put("value", event.getValue());
-			velocityContext.put("ts", event.getTs());
-			
-	        StringWriter w1 = new StringWriter();
-	        ve.evaluate(velocityContext, w1, "velocity", this.getTopic());
-	        
-	        StringWriter w2 = new StringWriter();
-	        ve.evaluate(velocityContext, w2, "velocity", this.getMessage());
-	        
-	        String stringTopic =  w1.toString();
-	        String stringMessage =  w2.toString();
+			VelocityContext velocityContext = getVelocityContext(event);
+	        String stringTopic =  getVelocityString(velocityContext, this.getTopic());
+	        String stringMessage =  getVelocityString(velocityContext, this.getMessage());
 	        
 			byte[] byteMessage = stringMessage.getBytes();
 			setEventsSize(byteMessage.length);
@@ -79,7 +61,6 @@ public class Kafka extends Writer {
 			ProducerData<String, String> data = new ProducerData<String, String>(stringTopic, stringMessage);
 			kafkaProducer.send(data);
 		}
-		
 	}
 
 

@@ -4,7 +4,7 @@ JIMI_HOME=.
 JIMI_NAME=${1:-"jimi"}
 
 WLS_LIBS=$JIMI_HOME/lib
-JAVA_OPTS="-Djimi.home=${JIMI_HOME} -Djimi.name=${JIMI_NAME} -Duser.timezone=GMT -Djava.security.policy=jimi.policy"
+JAVA_OPTS="-Djimi.home=${JIMI_HOME} -Djimi.name=${JIMI_NAME} -Duser.timezone=GMT -Djava.security.policy=file:./jimi.policy"
 JIMI_JAR=${JIMI_HOME}/jimi.jar
 
 CLASSPATH=$JIMI_HOME/.:$JIMI_HOME/lib/*.jar

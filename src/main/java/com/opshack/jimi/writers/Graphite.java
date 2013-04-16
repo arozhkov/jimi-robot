@@ -1,6 +1,5 @@
 package com.opshack.jimi.writers;
 
-import java.io.StringWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -8,7 +7,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +22,6 @@ public class Graphite extends Writer {
 	
 	InetAddress address;
 	private DatagramSocket datagramSocket;
-	private VelocityEngine ve = new VelocityEngine();
 	
 	
 	@Override
@@ -44,9 +41,6 @@ public class Graphite extends Writer {
 			return false;
 		}
 		
-		ve.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
-		ve.init();
-		
 		log.info(this.host + ":" + this.port + ", format " + this.format);
 		return true;
 	}
@@ -57,21 +51,12 @@ public class Graphite extends Writer {
 		
 		if ( valide(event) ) {
 			
-			VelocityContext velocityContext = new VelocityContext();
-	
-			velocityContext.put("source", event.getSource());
-			velocityContext.put("metric", event.getMetric());
-			velocityContext.put("value", event.getValue());
-			velocityContext.put("ts", event.getTs());
-			
-	        StringWriter w = new StringWriter();
-	        ve.evaluate(velocityContext, w, "velocity", this.getFormat());
+			VelocityContext velocityContext = getVelocityContext(event);
+	        String message =  getVelocityString(velocityContext, this.getFormat());
 	        
-	        String stringMessage =  w.toString();
-	        
-			log.debug("Graphite: " + event.getId() + " " + stringMessage + " to " + this.address + ":" + this.port);
+			log.debug("Graphite: " + event.getId() + " " + message + " to " + this.address + ":" + this.port);
 			
-			byte[] byteMessage = stringMessage.getBytes();
+			byte[] byteMessage = message.getBytes();
 			setEventsSize(byteMessage.length);
 			
 			DatagramPacket packet = new DatagramPacket(byteMessage, byteMessage.length, this.address, this.port);
@@ -79,7 +64,7 @@ public class Graphite extends Writer {
 			try {
 				this.datagramSocket.send(packet);
 			} catch (Exception e) {
-				log.error("Graphite: " + event.getId() + " " + stringMessage + " to " + this.address + ":" + this.port);
+				log.error("Graphite: " + event.getId() + " " + message + " to " + this.address + ":" + this.port);
 				e.printStackTrace();
 			}
 		}

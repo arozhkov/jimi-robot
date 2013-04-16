@@ -1,8 +1,11 @@
 package com.opshack.jimi.writers;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,16 @@ public abstract class Writer implements Runnable{
 	private long eventsSize = 0;
 	private ArrayList<String> filter;
 	
+	protected VelocityEngine ve = new VelocityEngine();
+	
+	
+	public Writer() {
+		
+		ve.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
+		ve.init();
+	}
+	
+	
 	public void run() {
 		
 	    try {
@@ -28,13 +41,13 @@ public abstract class Writer implements Runnable{
 	        if (Thread.interrupted()) {
 	        	throw new InterruptedException();
 	        }
-	        
 	      }
 	      
 	    } catch (InterruptedException ex) {
 	    	log.info("Writer iterrupted.");
 		} 
 	}
+	
 	
 	public boolean valide(Event event) {
 		
@@ -50,6 +63,28 @@ public abstract class Writer implements Runnable{
 
 		return false;
 	}
+	
+	public VelocityContext getVelocityContext(Event event) {
+		
+		VelocityContext velocityContext = new VelocityContext();
+		
+		velocityContext.put("source", event.getSource());
+		velocityContext.put("metric", event.getMetric());
+		velocityContext.put("value", event.getValue());
+		velocityContext.put("ts", event.getTs());
+		
+		return velocityContext;
+	}
+	
+	
+	public String getVelocityString(VelocityContext velocityContext, String pattern) {
+		
+		StringWriter w = new StringWriter();
+        ve.evaluate(velocityContext, w, "velocity", pattern);
+        
+		return w.toString();
+	}
+	
 	
 	public abstract void write(Event event);
 	public abstract boolean init();
