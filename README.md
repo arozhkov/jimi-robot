@@ -5,7 +5,7 @@
 * Easy to setup and configure. _I think so._
 * Light. _Well RAM is so cheap nowadays._
 * Not intrusive. _As much as RMI could be._
-* Integration with third-party tools. _Graphite_
+* Integration with third-party tools. _Graphite, Kafka_
 * Getting data from Oracle JVM, Weblogic and in the near future from JBoss servers.  _True._
 * Collect simple numeric attributes from BMeans and combined data attributes. _True._
 
