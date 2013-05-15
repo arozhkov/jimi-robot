@@ -15,6 +15,7 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
+import com.opshack.jimi.sources.Jboss;
 import com.opshack.jimi.sources.Source;
 import com.opshack.jimi.sources.Jvm;
 import com.opshack.jimi.sources.Weblogic;
@@ -170,6 +171,7 @@ public class Jimi {
 			configConstructor.addTypeDescription(new TypeDescription(Weblogic.class, "!weblogic"));
 			configConstructor.addTypeDescription(new TypeDescription(WeblogicDomain.class, "!weblogicDomain"));
 			configConstructor.addTypeDescription(new TypeDescription(Jvm.class,	"!jvm"));
+			configConstructor.addTypeDescription(new TypeDescription(Jboss.class,	"!jboss"));
 
 			configConstructor.addTypeDescription(new TypeDescription(Graphite.class, "!graphite"));
 			configConstructor.addTypeDescription(new TypeDescription(Console.class, "!console"));
