@@ -83,6 +83,14 @@ Jimi comes with a simple startup script `run.sh` that makes some assumptions abo
 run.sh <name_of_config_file_without_extension>
 ```
 
+You may write your own startup script, Jimi's main class `com.opshack.jimi.Jimi` takes only one parameter: the path to the configuration file. The following additional options are available:    
+`jimi.home` - Jimi's home folder    
+`jimi.name` - Jimi's instance name lets you run multiple instances in the same home    
+`jimi.metrics` - folder where you store yaml files with metric's definitions    
+
+Don't forget to put jimi.jar and all jars from `JIMI_HOME/lib` to the classpath. If you use Kafka writer, option `-Djava.security.policy=file:$JIMI_HOME/jimi.policy` is mandatory.
+
+
 ## Ideas behind this project
 
 Jimi is highly inspired by my previous non open-source works, articles from [monitoring sucks](http://monitoring.no.de/) and the jmxtrans project.
