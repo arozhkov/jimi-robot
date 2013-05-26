@@ -7,7 +7,7 @@
 * Not intrusive. _As much as RMI could be._
 * Integration with third-party tools. _Graphite, Kafka_
 * Getting data from Oracle JVM, Weblogic and JBoss servers.  _True._
-* Collecting simple numeric attributes from BMeans and combined data attributes. _True._
+* Collecting simple numeric values from MBean attributes and combined data attributes. _True._
 
 
 ## Concepts
@@ -43,7 +43,7 @@ __YAML:__ read and understand syntax
 
 This file contains definitions of writers and sources that will be used by Jimi. The definitions start with a tag referring to the object's class, like `!graphite` for Graphite writer, `!console` for console writer and `!jvm` for JVM source. Each writer and source need its own set of properties to get the work done. Properties' names are self-explanatory most of the time. Full list of possible properties for each class can be found on [Jimi's wiki](https://github.com/arozhkov/jimi-robot/wiki).
 
-Events produces by sources will be forwarded to all defined writers. The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server. 
+Events produced by sources will be forwarded to all defined writers. The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server. 
 
 The tag `!jvm` tells us that the source is a standard JVM JMX server. You may need to update `host` and `port` properties. 
 `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
