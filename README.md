@@ -41,14 +41,14 @@ __YAML:__ read and understand syntax
 
 ## _jimi.yaml_
 
-This file contains definitions of writers and sources that will be used by Jimi. The definitions start with a tag referring to the object's class, like `!graphite` for Graphite writer, `!console` for console writer and `!jvm` for JVM source. Each writer and source needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. Full list of possible properties for each class can be found on [Jimi's wiki](https://github.com/arozhkov/jimi-robot/wiki).
+This file contains definitions of writers and sources that will be used by Jimi. The definitions start with a tag referring to the object's class, like `!graphite` for Graphite writer, `!console` for console writer and `!jvm` for JVM source. Each writer and source need its own set of properties to get the work done. Properties' names are self-explanatory most of the time. Full list of possible properties for each class can be found on [Jimi's wiki](https://github.com/arozhkov/jimi-robot/wiki).
 
 Events produces by sources will be forwarded to all defined writers. The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server. 
 
 The tag `!jvm` tells us that the source is a standard JVM JMX server. You may need to update `host` and `port` properties. 
 `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
 
-The last element of this file is `executorThreadPoolSize` property. It defines the size of the thread pool used by Jimi for collection of metrics.
+The last element of this file, `executorThreadPoolSize` property, defines the size of the thread pool used by Jimi for collection of metrics.
 
 ```yaml
 writers: 
@@ -76,6 +76,8 @@ executorThreadPoolSize: 2
 
 
 ## Usage
+
+Jimi comes with a simple startup script `run.sh` that makes some assumptions about your setup: java is in your `PATH`, definitions of metrics are stored in `JIMI_HOME/metrics` folder, the main configuration file is in `JIMI_HOME/config` folder and the name of this file will be used as a name of Jimi instance, `JIMI_HOME/logs` folder exists.
 
 ```bash
 run.sh <name_of_config_file_without_extension>

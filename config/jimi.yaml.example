@@ -6,21 +6,6 @@ writers:
     host: 172.0.0.1
     port: 2003
     format: "jimi.${source.label}.${metric.get('rate')}s.${metric.get('label')} ${value} ${ts.s}"
-    
-  - !kafka
-    topic: ${source.label}
-    message: ${metric.get('label')}, ${value}, ${ts.s}
-    props: 
-      zk.connect: 172.0.0.1:2181
-      serializer.class: kafka.serializer.StringEncoder
-      producer.type: async
-      compression.codec: 1
-      queue.time: 60000
-      queue.size: 10000
-      batch.size: 100
-    filter:
-      - gs.
-      - Process.
         
 sources:
   - !jvm
