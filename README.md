@@ -6,8 +6,8 @@
 * Light. _Well RAM is so cheap nowadays._
 * Not intrusive. _As much as RMI could be._
 * Integration with third-party tools. _Graphite, Kafka_
-* Getting data from Oracle JVM, Weblogic and in the near future from JBoss servers.  _True._
-* Collect simple numeric attributes from BMeans and combined data attributes. _True._
+* Getting data from Oracle JVM, Weblogic and JBoss servers.  _True._
+* Collecting simple numeric attributes from BMeans and combined data attributes. _True._
 
 
 ## Concepts
@@ -23,7 +23,7 @@
 
 __Before you begin:__ although the code is a mess, the application is stable and does what it is supposed to do.  I'm currently working on improvements.
 
-1. Download latest version of [Jimi](http://bit.ly/TnY4NS). The archive contains all needed dependences except Weblogic/JBoss client jars.  
+1. Download latest version of [Jimi](http://sourceforge.net/projects/jimi-robot/). The archive contains all needed dependences except Weblogic/JBoss client jars.  
 1. Unzip archive somewhere on your server. We are going to refer to this place as `JIMI_HOME`.
 1. Copy `JIMI_HOME/config/jimi.yaml.example` into `JIMI_HOME/config/jimi.yaml` and modify it according to your needs.
 
@@ -41,13 +41,14 @@ __YAML:__ read and understand syntax
 
 ## _jimi.yaml_
 
-The configuration starts with the definition of writers that will be used for all sources defined in the same file. Definitions of writers and sources start with a tag referring to the object's class, like `!graphite` or `!jvm`. Each class needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. 
+This file contains definitions of writers and sources that will be used by Jimi. The definitions start with a tag referring to the object's class, like `!graphite` for Graphite writer, `!console` for console writer and `!jvm` for JVM source. Each writer and source needs its own set of properties to get the work done. Properties' names are self-explanatory most of the time. Full list of possible properties for each class can be found on [Jimi's wiki](https://github.com/arozhkov/jimi-robot/wiki).
 
-The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server.
+Events produces by sources will be forwarded to all defined writers. The example file contains definitions of two writers: `!console` and `!graphite`. The first prints events to the console the second sends events to Graphite server. 
 
-Only one source is defined, tag `!jvm` tells us it's a standard JVM JMX server. You may need to update `host` and `port` properties. `metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
+The tag `!jvm` tells us that the source is a standard JVM JMX server. You may need to update `host` and `port` properties. 
+`metrics` property contains the names of metric groups defined in metrics library folder `JIMI_HOME/metrics`. You can use existing metrics or create your own, more on this [here](https://github.com/arozhkov/jimi-robot/wiki/Metrics).
 
-The last element of this file is `executorThreadPoolSize` property. It defines the number of threads that will collect metrics.
+The last element of this file is `executorThreadPoolSize` property. It defines the size of the thread pool used by Jimi for collection of metrics.
 
 ```yaml
 writers: 
