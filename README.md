@@ -77,7 +77,7 @@ executorThreadPoolSize: 2
 
 ## Usage
 
-Jimi comes with a simple startup script `run.sh` that makes some assumptions about your setup: java is in your `PATH`, definitions of metrics are stored in `JIMI_HOME/metrics` folder, the main configuration file is in `JIMI_HOME/config` folder and the name of this file will be used as a name of Jimi instance, `JIMI_HOME/logs` folder exists.
+Jimi comes with a simple startup script `run.sh` that makes some assumptions about your setup: java is in the `PATH`, definitions of metrics are stored in `JIMI_HOME/metrics` folder, the main configuration file is in `JIMI_HOME/config` folder and the name of this file will be used as a name of Jimi instance.   
 
 ```bash
 run.sh <name_of_config_file_without_extension>
