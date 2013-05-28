@@ -153,6 +153,10 @@ public class Jimi {
 			System.setProperty("jimi.home", System.getProperty("user.dir"));
 		}
 		
+		if (System.getProperty("jimi.name") == null) {
+			System.setProperty("jimi.name", "jimi");
+		}
+		
 		final Logger log = LoggerFactory.getLogger(Jimi.class);
 
 		if (args.length < 1) {
@@ -164,7 +168,7 @@ public class Jimi {
 
 			InputStream configFile = new FileInputStream(new File(args[0]));
 
-			log.info("Load configuration");
+			log.info("Load configuration for " + System.getProperty("jimi.name"));
 
 			Constructor configConstructor = new Constructor(Jimi.class);
 

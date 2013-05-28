@@ -77,16 +77,17 @@ executorThreadPoolSize: 2
 
 ## Usage
 
-Jimi comes with a simple startup script `run.sh` that makes some assumptions about your setup: java is in the `PATH`, definitions of metrics are stored in `JIMI_HOME/metrics` folder, the main configuration file is in `JIMI_HOME/config` folder and the name of this file will be used as a name of Jimi instance.   
+Jimi comes with a simple startup script `run.sh` that makes some assumptions about your setup: java is in the `PATH`, definitions of metrics are stored in `JIMI_HOME/metrics` folder, the main configuration file is in `JIMI_HOME/config` folder and the name of this file will be used as a name of Jimi instance.    
+To run Jimi execute this script and pass the name of configuration file as a parameter:       
 
 ```bash
 run.sh <name_of_config_file_without_extension>
 ```
 
 You may write your own startup script, Jimi's main class `com.opshack.jimi.Jimi` takes only one parameter: the path to the configuration file. The following additional options are available:    
-`jimi.home` - Jimi's home folder    
-`jimi.name` - Jimi's instance name lets you run multiple instances in the same home    
-`jimi.metrics` - folder where you store yaml files with metric's definitions    
+`jimi.home` - Jimi's home folder, default value is `user.dir`    
+`jimi.name` - Jimi's instance name lets you run multiple instances in the same home, default value is `jimi`    
+`jimi.metrics` - folder where you store yaml files with metric's definitions, default value is `JIMI_HOME/metrics`    
 
 Don't forget to put jimi.jar and all jars from `JIMI_HOME/lib` to the classpath. If you use Kafka writer, option `-Djava.security.policy=file:$JIMI_HOME/jimi.policy` is mandatory.
 
