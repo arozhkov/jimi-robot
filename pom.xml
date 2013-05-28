@@ -4,7 +4,7 @@
 
 	<groupId>com.opshack</groupId>
 	<artifactId>jimi</artifactId>
-	<version>0.3.6</version>
+	<version>0.3.8</version>
 	<packaging>jar</packaging>
 
 	<name>jimi-robot</name>
@@ -29,16 +29,6 @@
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
 			<version>1.10</version>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle.weblogic</groupId>
-			<artifactId>wljmxclient</artifactId>
-			<version>10.3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle.weblogic</groupId>
-			<artifactId>wlclient</artifactId>
-			<version>10.3</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>

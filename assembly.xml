@@ -14,7 +14,6 @@
 			<includes>
 				<include>README*</include>
 				<include>LICENSE*</include>
-				<include>*.yaml.example</include>
 				<include>*.properties</include>
 				<include>*.bat</include>
 				<include>*.sh</include>
@@ -31,9 +30,9 @@
 		<fileSet>
 			<directory>${project.build.directory}/lib</directory>
 			<outputDirectory>lib</outputDirectory>
-			<excludes>
-				<exclude>wl*.jar</exclude>
-			</excludes>
+			<includes>
+        <include>*.jar</include>
+      </includes>
 		</fileSet>
 		<fileSet>
 			<directory>${project.build.directory}/metrics</directory>
