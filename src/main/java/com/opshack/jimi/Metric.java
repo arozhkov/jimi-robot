@@ -23,7 +23,7 @@ public class Metric implements Runnable {
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
 	private Source source;
-	private Map metricDef;
+	private HashMap metricDef;
 	private ObjectName objectName;
 	private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
 	
@@ -33,7 +33,7 @@ public class Metric implements Runnable {
 		this.source = source;
 		
 		log.debug(this.source + " " + metricDef + " creat metric");
-		this.metricDef = metricDef;
+		this.metricDef = (HashMap) metricDef;
 		
 		this.objectName = new ObjectName((String) this.metricDef.get("mbean"));
 		
@@ -120,7 +120,7 @@ public class Metric implements Runnable {
 
 								if (subvalue != null && (subvalue instanceof Long || subvalue instanceof Integer)) {
 
-									this.write(new Event(this.source, this.metricDef, label, String.valueOf(subvalue)));
+									this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(subvalue)));
 
 								} else {
 									log.error(this.source + " " + bean.getObjectName() + 
@@ -134,7 +134,7 @@ public class Metric implements Runnable {
 				
 						} else if (value instanceof Long || value instanceof Integer) {
 
-							this.write(new Event(this.source, this.metricDef, label, String.valueOf(value)));
+							this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(value)));
 
 						} else  {
 							log.error(this.source + " " + bean.getObjectName() + 

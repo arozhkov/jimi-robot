@@ -11,16 +11,10 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.IntrospectionException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +32,7 @@ public abstract class Source implements Runnable{
 	private int port;
 	private String username;
 	private String password;
-	private LinkedHashMap<String, Object> props;
+	private HashMap<String, Object> props;
 	private String propsMBean;
 	private List<String> metrics;
 	private String label;
@@ -109,6 +103,14 @@ public abstract class Source implements Runnable{
 		this.setLabel();
 		this.jimi = jimi;
 		this.setBroken(false);
+		
+		if (this.props == null) {
+			this.setProps(new HashMap<String, Object>());
+		}
+		
+		this.props.put("host", this.host);
+		this.props.put("port", Integer.toString(this.port));
+		this.props.put("label", this.label);
 		
 		try {
 			
@@ -253,15 +255,15 @@ public abstract class Source implements Runnable{
 		this.propsMBean = propsMBean;
 	}
 	
-	public LinkedHashMap<String, Object> getProps() {
+	public HashMap<String, Object> getProps() {
 		return this.props;
 	}
 	
-	public Object get(String property) {
-		return props.get(property);
-	}
+//	public Object get(String property) {
+//		return props.get(property);
+//	}
 
-	public void setProps(LinkedHashMap<String, Object> props) {
+	public void setProps(HashMap<String, Object> props) {
 		this.props = props;
 	}
 
