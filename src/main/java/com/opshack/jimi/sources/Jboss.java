@@ -37,7 +37,7 @@ public class Jboss extends Source {
 				credentials[1] = this.getPassword();
 		        
 				h.put(JMXConnector.CREDENTIALS, credentials);
-				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(10000));
+				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(5000));
 				
 				this.jmxConnector = JMXConnectorFactory.connect(serviceURL, h);
 				//this.jmxConnector.connect();

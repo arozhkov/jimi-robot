@@ -35,7 +35,7 @@ public class Weblogic extends Source {
 				h.put(Context.SECURITY_PRINCIPAL, this.getUsername());
 				h.put(Context.SECURITY_CREDENTIALS, this.getPassword());
 				h.put(JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, "weblogic.management.remote");
-				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(10000));
+				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(2000));
 				
 				this.jmxConnector = JMXConnectorFactory.newJMXConnector(serviceURL, h);
 				this.jmxConnector.connect();

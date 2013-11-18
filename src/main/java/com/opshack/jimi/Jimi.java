@@ -80,7 +80,7 @@ public class Jimi {
 		for (Writer writer : writers) {
 
 			if (writer.init()) { // setup writer
-				new Thread(writer).start(); // start writer
+				new Thread(writer, writer.getClass().getName()).start(); // start writer
 
 			} else {
 				log.error("Can't initialize writer.");
@@ -102,7 +102,7 @@ public class Jimi {
 					}
 
 					if (source.init(this)) {
-						new Thread(source).start();
+						new Thread(source, source.getLabel()).start();
 					}
 				}
 			}
