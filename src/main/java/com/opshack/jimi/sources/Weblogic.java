@@ -1,9 +1,9 @@
 package com.opshack.jimi.sources;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.naming.Context;
@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 public class Weblogic extends Source {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
-	private JMXConnector jmxConnector;
 	
 	
 	@Override
@@ -35,7 +34,7 @@ public class Weblogic extends Source {
 				h.put(Context.SECURITY_PRINCIPAL, this.getUsername());
 				h.put(Context.SECURITY_CREDENTIALS, this.getPassword());
 				h.put(JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, "weblogic.management.remote");
-				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(2000));
+				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(this.jimi.getSourceConnectionTimeout()));
 				
 				this.jmxConnector = JMXConnectorFactory.newJMXConnector(serviceURL, h);
 				this.jmxConnector.connect();
@@ -43,17 +42,33 @@ public class Weblogic extends Source {
 
 			} catch (Exception e) {
 				
+				this.setSourceState(SourceState.BROKEN);
+				
 				if (log.isDebugEnabled()) {
 					e.printStackTrace();
 				}
+
+				this.mbeanServerConnection = null;
+
+				if (this.jmxConnector != null) {
+					
+					try {
+						this.jmxConnector.close();
+						
+					} catch (Exception e1) {
+
+						e1.printStackTrace();
+					}
+				}
 				
-				throw new InterruptedException(e.getMessage() + "; occurred during connection to JMX server");
+				throw new InterruptedException(e.toString());
 				
 			}
 
-			log.info(this + " is connected");
+			this.setSourceState(SourceState.CONNECTED);
 			
 		} else {
+			
 			log.warn(this + " is already connected");
 		}
 	}

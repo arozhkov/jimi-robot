@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +14,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ import com.opshack.jimi.Metric;
 import com.opshack.jimi.writers.Writer;
 
 
-public abstract class Source implements Runnable{
+public abstract class Source implements Runnable {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
@@ -38,10 +38,14 @@ public abstract class Source implements Runnable{
 	private String label;
 	
 	protected Jimi jimi;
-	
+
 	private boolean broken = true;
 	private boolean definitlyBroken = true;
+	private int countdown = 0;
 	
+	private SourceState sourceState = SourceState.INIT;
+	
+	protected JMXConnector jmxConnector;
 	protected MBeanServerConnection mbeanServerConnection;
 	
 	private HashSet <ScheduledFuture<?>> tasks = new HashSet<ScheduledFuture<?>>();
@@ -52,18 +56,35 @@ public abstract class Source implements Runnable{
 		return this.mbeanServerConnection;
 	}
 	
-	public void run() {
+	public void run(){
 	
+		try {
 			
-		for (String group: this.metrics) {
+			this.init();
+			
+		} catch (Exception e) { 
 
-			ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
-			if (metricDefs != null && metricDefs.size() > 0) {
+			if ( !this.getSourceState().equals(SourceState.RECOVERY) ) {
+				this.setSourceState(SourceState.BROKEN);
+			}
 
-				for (Map metricDef: metricDefs) {
+			if (log.isDebugEnabled()) {
+				e.printStackTrace();
+			}
 
-					if (this.isConnected() && !this.isBroken()) {				// 
-						
+		}
+			
+		if (this.getSourceState().equals(SourceState.CONNECTED) && this.isConnected() && !this.isBroken()) {
+
+			this.tasks = new HashSet<ScheduledFuture<?>>();
+
+			for (String group: this.metrics) {
+
+				ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
+				if (metricDefs != null && metricDefs.size() > 0) {
+
+					for (Map metricDef: metricDefs) {
+
 						try {
 
 							Metric metric = new Metric(this, metricDef); 		// create JMX metric
@@ -77,6 +98,8 @@ public abstract class Source implements Runnable{
 
 						} catch (IOException e) { 								// if IO exception occurred
 
+							this.setSourceState(SourceState.BROKEN);
+							
 							log.warn(this + " IOException: " + e.getMessage()); // print warning message
 
 							if (log.isDebugEnabled()) {
@@ -89,60 +112,35 @@ public abstract class Source implements Runnable{
 						} catch (Exception e) { 								// if not an IO exception just skip metric creation
 							log.error(this + " non-IOException: " + e.getMessage());
 						}
-						
 					}
 				}
 			}
+			log.info(this + " metrics are scheduled");
 		}
-			
-			log.info(this + " tasks are initiated");
-		}
+	}
 	
-	public boolean init(Jimi jimi) {
+	public void init() throws Exception {
 
 		this.setLabel();
-		this.jimi = jimi;
 		this.setBroken(false);
 		
 		if (this.props == null) {
-			this.setProps(new HashMap<String, Object>());
+			this.setProps(new HashMap<String, Object>());	
 		}
 		
 		this.props.put("host", this.host);
 		this.props.put("port", Integer.toString(this.port));
 		this.props.put("label", this.label);
-		
-		try {
-			
-			setMBeanServerConnection(); 										// connect to source
-			
-			if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
-				this.setProperties();
-			}
-		
-		} catch (Exception e) { 												// if failed 
-			
-			if (log.isDebugEnabled()) {
-				e.printStackTrace();
-			}
-			
-			log.warn(this + " " + e.getMessage()); 								// print warning message
-			try {
-				
-				Thread.sleep(30000); 											// block thread for 30 seconds
-				
-			} catch (InterruptedException e1) {}								// do nothing, anyway it's going to exit
-			
-			this.setBroken(true);												// break the source
-		}
-		
-		this.tasks = new HashSet<ScheduledFuture<?>>();
 
-		return !this.isBroken();
+		setMBeanServerConnection();  // connect to source
+
+		if ( this.getSourceState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
+			this.setPropertiesFromMBean();
+		}
 	}
 	
 	
-	protected void setProperties() throws Exception {
+	protected void setPropertiesFromMBean() throws Exception {
 
 		ObjectName objectName = new ObjectName(this.getPropsMBean());
 
@@ -161,13 +159,12 @@ public abstract class Source implements Runnable{
 					Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
 
 					this.props.put(attributeName, value);
-					log.debug(this + " N " + attributeName + " = " + value);
+					log.debug(this + " set " + attributeName + " = " + value);
 				}
 
 				break;
 			}
 		}
-
 	}
 
 	public void shutdown() {
@@ -179,9 +176,8 @@ public abstract class Source implements Runnable{
 				log.debug(this + " task cancelation status is " + task.isCancelled());
 			}
 		}
-
-		this.mbeanServerConnection = null;
-		log.info(this + " tasks are canceled");
+		
+		log.info(this + " source shutdown");
 	}
 	
 	public boolean isConnected() {
@@ -190,6 +186,12 @@ public abstract class Source implements Runnable{
 			return false;
 		}
 		return true;
+	}
+	
+	public synchronized void setBroken(boolean broken) {
+		
+		this.broken = broken;
+		this.mbeanServerConnection = null;
 	}
 	
 	public String toString() {
@@ -236,9 +238,6 @@ public abstract class Source implements Runnable{
 	public synchronized boolean isBroken() {
 		return broken;
 	}
-	public synchronized void setBroken(boolean broken) {
-		this.broken = broken;
-	}
 
 	public synchronized boolean isDefinitlyBroken() {
 		return definitlyBroken;
@@ -258,10 +257,6 @@ public abstract class Source implements Runnable{
 	public HashMap<String, Object> getProps() {
 		return this.props;
 	}
-	
-//	public Object get(String property) {
-//		return props.get(property);
-//	}
 
 	public void setProps(HashMap<String, Object> props) {
 		this.props = props;
@@ -278,4 +273,27 @@ public abstract class Source implements Runnable{
 	public ArrayList<Writer> getWriters() {
 		return this.jimi.getWriters();
 	}
+	
+	public void setJimi(Jimi jimi) {
+		this.jimi = jimi;
+	}
+
+	public int getCountdown() {
+		return countdown;
+	}
+
+	public void setCountdown(int countdown) {
+		this.countdown = countdown;
+	}
+
+	public synchronized SourceState getSourceState() {
+		return sourceState;
+	}
+
+	public synchronized void setSourceState(SourceState sourceState) {
+		log.info(this + " change state to " + sourceState);
+		this.sourceState = sourceState;
+	}
+	
+	
 }

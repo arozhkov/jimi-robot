@@ -6,17 +6,15 @@ import java.util.Map;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-import javax.naming.Context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class Jboss extends Source {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
-	private JMXConnector jmxConnector;
-	
-	
+
 	@Override
 	public synchronized void setMBeanServerConnection() throws InterruptedException {
 		
@@ -37,25 +35,39 @@ public class Jboss extends Source {
 				credentials[1] = this.getPassword();
 		        
 				h.put(JMXConnector.CREDENTIALS, credentials);
-				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(5000));
-				
+
+				log.debug(this + " connecting... ");
 				this.jmxConnector = JMXConnectorFactory.connect(serviceURL, h);
-				//this.jmxConnector.connect();
 				this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
 
 			} catch (Exception e) {
 				
+				this.setSourceState(SourceState.BROKEN);
+				
 				if (log.isDebugEnabled()) {
 					e.printStackTrace();
 				}
+
+				this.mbeanServerConnection = null;
+
+				if (this.jmxConnector != null) {
+					
+					try {
+						this.jmxConnector.close();
+						
+					} catch (Exception e1) {
+
+						e1.printStackTrace();
+					}
+				}
 				
-				throw new InterruptedException(e.getMessage() + "; occurred during connection to JMX server");
-				
+				throw new InterruptedException(e.getMessage());
 			}
 
-			log.info(this + " is connected");
+			this.setSourceState(SourceState.CONNECTED);
 			
 		} else {
+			
 			log.warn(this + " is already connected");
 		}
 	}

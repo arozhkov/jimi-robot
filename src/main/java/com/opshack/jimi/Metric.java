@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opshack.jimi.sources.Source;
+import com.opshack.jimi.sources.SourceState;
 import com.opshack.jimi.writers.Writer;
 
 public class Metric implements Runnable {
@@ -95,7 +96,7 @@ public class Metric implements Runnable {
 	
 	public void run() {
 
-		if (this.source.isConnected() && !this.source.isBroken()) {
+		if (this.source.getSourceState().equals(SourceState.CONNECTED) && this.source.isConnected() && !this.source.isBroken()) {
 
 			Set<String> labels = this.beans.keySet();
 			for (String label: labels) {
@@ -143,6 +144,10 @@ public class Metric implements Runnable {
 					} 
 					
 				} catch (IOException e) {
+					
+					if (this.source.getSourceState().equals(SourceState.CONNECTED)) {
+						this.source.setSourceState(SourceState.BROKEN);
+					}
 					
 					log.warn(this.source + " IOException: " + e.getMessage());
 

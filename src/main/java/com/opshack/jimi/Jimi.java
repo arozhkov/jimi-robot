@@ -6,8 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +22,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import com.opshack.jimi.sources.Jboss;
 import com.opshack.jimi.sources.Source;
 import com.opshack.jimi.sources.Jvm;
+import com.opshack.jimi.sources.SourceState;
 import com.opshack.jimi.sources.Weblogic;
 import com.opshack.jimi.sources.WeblogicDomain;
 import com.opshack.jimi.writers.Console;
@@ -31,9 +36,12 @@ public class Jimi {
 
 	private ArrayList<Source> sources;
 	private int executorThreadPoolSize = 2;
+	private int sourceConnectionTimeout = 3000;
 	
+
 	private ArrayList<Writer> writers;
 	public ScheduledExecutorService taskExecutor;
+	ExecutorService sourceExecutor;
 	public HashMap metricGroups = new HashMap();
 
 	Jimi() throws FileNotFoundException {
@@ -75,12 +83,14 @@ public class Jimi {
 	public void start() throws Exception {
 
 		log.info("Shared executor size is: " + executorThreadPoolSize);
+		
 		taskExecutor = Executors.newScheduledThreadPool(executorThreadPoolSize);
+		sourceExecutor = Executors.newFixedThreadPool(3);
 
 		for (Writer writer : writers) {
 
 			if (writer.init()) { // setup writer
-				new Thread(writer, writer.getClass().getName()).start(); // start writer
+				new Thread(writer, writer.getClass().getSimpleName() + "Writer").start(); // start writer
 
 			} else {
 				log.error("Can't initialize writer.");
@@ -95,15 +105,63 @@ public class Jimi {
 
 			for (Source source : sources) {
 
+				switch(source.getSourceState()) {
+				
+				case INIT:
+					log.info("Check Socket");
+					source.setSourceState(SourceState.ONLINE);
+					break;
+					
+				case ONLINE:
+					source.setJimi(this);
+					source.run();
+					break;
+					
+				case BROKEN:
+					
+					source.setSourceState(SourceState.RECOVERY);
+					source.shutdown();
+					Thread.sleep(12000);
+					source.setSourceState(SourceState.INIT);
+					break;
+					
+				case OFFLINE:
+
+					break;
+					
+				default:
+					break;
+				}
+			        	
+				
 				if (source.isBroken()) { // check source state
 					
 					if (source.getLabel() != null) {
 						source.shutdown(); // shutdown and cleanup
+					} else {
+						source.setJimi(this);
 					}
 
-					if (source.init(this)) {
-						new Thread(source, source.getLabel()).start();
-					}
+//					Future<?> future = sourceExecutor.submit(Executors.callable(source));
+//					try {
+//						future.get(3000, TimeUnit.MILLISECONDS);	
+//						
+//					} catch(TimeoutException e) {
+//						
+//						if (log.isDebugEnabled()) {
+//							e.printStackTrace();
+//						} else {
+//							log.info("Can't wait, going to the next task");
+//						}
+//						
+//					} catch(Exception e) {
+//						
+//						if (log.isDebugEnabled()) {
+//							e.printStackTrace();
+//						} else {
+//							log.info("An exception occurred during initialization");
+//						}
+//					}
 				}
 			}
 
@@ -223,6 +281,14 @@ public class Jimi {
 
 	public void setExecutorThreadPoolSize(int executorThreadPoolSize) {
 		this.executorThreadPoolSize = executorThreadPoolSize;
+	}
+	
+	public int getSourceConnectionTimeout() {
+		return sourceConnectionTimeout;
+	}
+
+	public void setSourceConnectionTimeout(int sourceConnectionTimeout) {
+		this.sourceConnectionTimeout = sourceConnectionTimeout;
 	}
 
 	public ScheduledExecutorService getTaskExecutor() {
