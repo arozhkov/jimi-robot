@@ -108,17 +108,18 @@ public class Jimi {
 				switch(source.getSourceState()) {
 				
 				case INIT:
-					log.info("Check Socket");
-					source.setSourceState(SourceState.ONLINE);
+					
+					source.init(this);
+					if (source.getSourceState().equals(SourceState.CONNECTED)) {
+						source.run();
+					}
 					break;
 					
 				case ONLINE:
-					source.setJimi(this);
-					source.run();
+					
 					break;
 					
 				case BROKEN:
-					
 					source.setSourceState(SourceState.RECOVERY);
 					source.shutdown();
 					Thread.sleep(12000);
@@ -132,15 +133,9 @@ public class Jimi {
 				default:
 					break;
 				}
-			        	
+			}  	
 				
-				if (source.isBroken()) { // check source state
-					
-					if (source.getLabel() != null) {
-						source.shutdown(); // shutdown and cleanup
-					} else {
-						source.setJimi(this);
-					}
+				
 
 //					Future<?> future = sourceExecutor.submit(Executors.callable(source));
 //					try {
@@ -162,8 +157,7 @@ public class Jimi {
 //							log.info("An exception occurred during initialization");
 //						}
 //					}
-				}
-			}
+
 
 			try {
 

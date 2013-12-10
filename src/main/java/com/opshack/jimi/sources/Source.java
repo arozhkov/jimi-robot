@@ -1,6 +1,8 @@
 package com.opshack.jimi.sources;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
@@ -50,31 +53,15 @@ public abstract class Source implements Runnable {
 	
 	private HashSet <ScheduledFuture<?>> tasks = new HashSet<ScheduledFuture<?>>();
 	
-	public abstract void setMBeanServerConnection() throws InterruptedException;
+	public abstract boolean setMBeanServerConnection();
 	
 	public MBeanServerConnection getMBeanServerConnection() {
 		return this.mbeanServerConnection;
 	}
 	
-	public void run(){
-	
-		try {
+	public void run() {
 			
-			this.init();
-			
-		} catch (Exception e) { 
-
-			if ( !this.getSourceState().equals(SourceState.RECOVERY) ) {
-				this.setSourceState(SourceState.BROKEN);
-			}
-
-			if (log.isDebugEnabled()) {
-				e.printStackTrace();
-			}
-
-		}
-			
-		if (this.getSourceState().equals(SourceState.CONNECTED) && this.isConnected() && !this.isBroken()) {
+		if (this.getSourceState().equals(SourceState.CONNECTED)) {
 
 			this.tasks = new HashSet<ScheduledFuture<?>>();
 
@@ -119,12 +106,13 @@ public abstract class Source implements Runnable {
 		}
 	}
 	
-	public void init() throws Exception {
+	public void init(Jimi jimi) {
 
 		this.setLabel();
+		this.setJimi(jimi);
 		this.setBroken(false);
 		
-		if (this.props == null) {
+		if (this.getProps() == null) {
 			this.setProps(new HashMap<String, Object>());	
 		}
 		
@@ -132,38 +120,80 @@ public abstract class Source implements Runnable {
 		this.props.put("port", Integer.toString(this.port));
 		this.props.put("label", this.label);
 
-		setMBeanServerConnection();  // connect to source
+		if (this.isOnline()) {
+			
+			this.setSourceState(SourceState.ONLINE);
+			
+			if (this.setMBeanServerConnection()) {
+				this.setSourceState(SourceState.CONNECTED);
+				this.setPropertiesFromMBean();
+			} else {
+				this.setSourceState(SourceState.BROKEN);
+			}
 
-		if ( this.getSourceState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
-			this.setPropertiesFromMBean();
+		} else {
+			this.setSourceState(SourceState.OFFLINE);
 		}
+
+	}
+	
+	protected Boolean isOnline() {
+		
+		final Socket socket = new Socket();
+		try {
+			
+			socket.connect(new InetSocketAddress(host, port), 2000);
+			
+		} catch (Exception e) {
+			return false;
+			
+		} finally {
+			try {
+				socket.close();
+			} catch (Exception e) {
+				//Ignore
+			}
+		}
+
+		return true;
 	}
 	
 	
-	protected void setPropertiesFromMBean() throws Exception {
+	protected void setPropertiesFromMBean() {
 
-		ObjectName objectName = new ObjectName(this.getPropsMBean());
 
-		Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
+		if ( this.getSourceState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
 
-		if (objectInstances!= null && !objectInstances.isEmpty()) {
+			try {
+				ObjectName objectName = new ObjectName(this.getPropsMBean());
+				Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
 
-			for (ObjectInstance obj: objectInstances) {
+				if (objectInstances!= null && !objectInstances.isEmpty()) {
 
-				log.info(this + " set properties from MBean: " + obj.getObjectName());
-				MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
+					for (ObjectInstance obj: objectInstances) {
 
-				for (MBeanAttributeInfo attribute: attributes) {
+						log.info(this + " set properties from " + obj.getObjectName());
+						MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
 
-					String attributeName = attribute.getName();
-					Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+						for (MBeanAttributeInfo attribute: attributes) {
 
-					this.props.put(attributeName, value);
-					log.debug(this + " set " + attributeName + " = " + value);
+							String attributeName = attribute.getName();
+							Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+
+							this.props.put(attributeName, value);
+							log.debug(this + " set " + attributeName + " = " + value);
+						}
+						break;
+					}
 				}
+			} catch (Exception e) {
 
-				break;
-			}
+				this.setSourceState(SourceState.BROKEN);
+				
+				if (log.isDebugEnabled()) {
+					e.printStackTrace();
+				}
+			} 
 		}
 	}
 
