@@ -320,18 +320,29 @@ public abstract class Source {
 	}
 
 	public synchronized void setState(SourceState state) {
-		
-		if (state == SourceState.BROKEN) {
-			
-			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {
-				this.state = state;
+
+		switch(state) {
+		case BROKEN:
+			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {		
 				++this.breakCount;
+				if (this.breakCount >= 5) {
+					this.state = SourceState.OFFLINE;
+				} else {
+					this.state = state;
+				}
 			} else {
 				log.error(this + " can't be broken when " + this.state);
 			}
-			
-		} else {
+			break;
+
+		case CONNECTED:
+			this.breakCount = 0;
 			this.state = state;
+			break;
+
+		default:
+			this.state = state;
+			break;
 		}
 		
 		log.info(this + " state: " + this.getState());

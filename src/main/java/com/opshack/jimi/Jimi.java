@@ -174,7 +174,7 @@ public class Jimi {
 					s.setState(SourceState.BROKEN);
 				}
 			}
-		}, 30, TimeUnit.SECONDS);
+		}, 15, TimeUnit.SECONDS);
 	}
 
 
@@ -196,7 +196,7 @@ public class Jimi {
 					s.setState(SourceState.OFFLINE);
 				}
 			}
-		}, 30, TimeUnit.SECONDS);
+		}, t+15, TimeUnit.SECONDS);
 	}
 	
 	
@@ -221,8 +221,7 @@ public class Jimi {
 						break;
 					default:
 						++x;
-					}	
-					log.info("Report" + source + " break count: " + source.breakCount);
+					}
 				}
 				log.info("Report total: " + t + "; connected: " + c + "; offline: " + o +"; others: " + x);
 			}
