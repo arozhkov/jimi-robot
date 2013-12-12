@@ -14,54 +14,42 @@ public class Jvm  extends Source {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	public synchronized void setMBeanServerConnection()	throws InterruptedException {
+	public synchronized boolean setMBeanServerConnection() {
 
-		if (!super.isConnected()) {
+		try {
 
-			try {
-				
-				JMXServiceURL serviceURL = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" 
-						+ this.getHost() + ":" 
-						+ this.getPort() + "/jmxrmi");
-				
-				log.debug(this + " serviceURL " + serviceURL);
-				
-				Map<String,Object> h = new HashMap<String, Object>();
-				h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(this.jimi.getSourceConnectionTimeout()));
-				
-				this.jmxConnector =  JMXConnectorFactory.newJMXConnector(serviceURL, h);
-				this.jmxConnector.connect();
-				this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
+			JMXServiceURL serviceURL = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" 
+					+ this.getHost() + ":" 
+					+ this.getPort() + "/jmxrmi");
 
-			} catch (Exception e) {
+			log.debug(this + " serviceURL " + serviceURL);
 
-				this.setSourceState(SourceState.BROKEN);
-				
-				if (log.isDebugEnabled()) {
-					e.printStackTrace();
-				}
+			Map<String,Object> h = new HashMap<String, Object>();
+			h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(this.jimi.getSourceConnectionTimeout()));
 
-				this.mbeanServerConnection = null;
+			this.jmxConnector =  JMXConnectorFactory.newJMXConnector(serviceURL, h);
+			this.jmxConnector.connect();
+			this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
 
-				if (this.jmxConnector != null) {
-					
-					try {
-						this.jmxConnector.close();
-						
-					} catch (Exception e1) {
+		} catch (Exception e) {
 
-						e1.printStackTrace();
-					}
-				}
-				
-				throw new InterruptedException(e.getMessage());
-				
+			if (log.isDebugEnabled()) {
+				e.printStackTrace();
 			}
-			
-			this.setSourceState(SourceState.CONNECTED);
-		
-		} else {
-			log.warn(this + " is already connected");
+
+			this.mbeanServerConnection = null;
+			if (this.jmxConnector != null) {
+
+				try {
+					this.jmxConnector.close();				
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}	
+
+			return false;
 		}
+		return true;
+
 	}
 }

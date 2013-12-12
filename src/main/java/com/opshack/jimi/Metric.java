@@ -38,7 +38,7 @@ public class Metric implements Runnable {
 		
 		this.objectName = new ObjectName((String) this.metricDef.get("mbean"));
 		
-		if (this.source.isConnected() && !this.source.isBroken()) {
+		if (this.source.getState().equals(SourceState.CONNECTED)) {
 			
 			log.debug(this.source + " " + this.metricDef + " getting mbean(s)");
 			Set<ObjectInstance> beans = new HashSet<ObjectInstance>();
@@ -96,16 +96,20 @@ public class Metric implements Runnable {
 	
 	public void run() {
 
-		if (this.source.getSourceState().equals(SourceState.CONNECTED) && this.source.isConnected() && !this.source.isBroken()) {
+		if (this.source.getState().equals(SourceState.CONNECTED) && this.source.getMBeanServerConnection() != null) {
 
 			Set<String> labels = this.beans.keySet();
 			for (String label: labels) {
 
 				try {
 				
-					ObjectInstance bean = this.beans.get(label);	
-					Object value = this.source.getMBeanServerConnection().getAttribute(bean.getObjectName(), (String) this.metricDef.get("attr"));
-
+					ObjectInstance bean = this.beans.get(label);
+					Object value = null;
+					
+					synchronized(this.source) {
+						value = this.source.getMBeanServerConnection().getAttribute(bean.getObjectName(), (String) this.metricDef.get("attr"));
+					}
+					
 					if (value != null) {
 
 						log.debug(this.source + " " + bean.getObjectName() + 
@@ -145,9 +149,7 @@ public class Metric implements Runnable {
 					
 				} catch (IOException e) {
 					
-					if (this.source.getSourceState().equals(SourceState.CONNECTED)) {
-						this.source.setSourceState(SourceState.BROKEN);
-					}
+					this.source.setState(SourceState.BROKEN);
 					
 					log.warn(this.source + " IOException: " + e.getMessage());
 

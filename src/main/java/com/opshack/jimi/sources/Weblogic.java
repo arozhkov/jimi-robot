@@ -20,7 +20,8 @@ public class Weblogic extends Source {
 		
 		try {
 
-			JMXServiceURL serviceURL = new JMXServiceURL("service:jmx:t3://" 
+			JMXServiceURL serviceURL = new JMXServiceURL(
+					"service:jmx:t3://" 
 					+ this.getHost() + ":" 
 					+ this.getPort() + "/jndi/weblogic.management.mbeanservers.runtime");
 

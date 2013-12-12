@@ -1,5 +1,6 @@
 package com.opshack.jimi.sources;
 
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -27,7 +28,7 @@ import com.opshack.jimi.Metric;
 import com.opshack.jimi.writers.Writer;
 
 
-public abstract class Source implements Runnable {
+public abstract class Source {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
@@ -45,8 +46,9 @@ public abstract class Source implements Runnable {
 	private boolean broken = true;
 	private boolean definitlyBroken = true;
 	private int countdown = 0;
+	public long breakCount = 0;
 	
-	private SourceState sourceState = SourceState.INIT;
+	private SourceState state = SourceState.INIT;
 	
 	protected JMXConnector jmxConnector;
 	protected MBeanServerConnection mbeanServerConnection;
@@ -59,43 +61,50 @@ public abstract class Source implements Runnable {
 		return this.mbeanServerConnection;
 	}
 	
-	public void run() {
+	public void start() {
 			
-		if (this.getSourceState().equals(SourceState.CONNECTED)) {
+		if (setMBeanServerConnection()) {
+			this.setState(SourceState.CONNECTED);
+			this.setPropertiesFromMBean();
+		} else {
+			this.setState(SourceState.BROKEN);
+		}
 
-			this.tasks = new HashSet<ScheduledFuture<?>>();
+		if (this.getState().equals(SourceState.CONNECTED)) {
 
 			for (String group: this.metrics) {
-
+	
 				ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
+	
 				if (metricDefs != null && metricDefs.size() > 0) {
-
+	
 					for (Map metricDef: metricDefs) {
-
+	
 						try {
-
-							Metric metric = new Metric(this, metricDef); 		// create JMX metric
-
-							this.tasks.add( 									// schedule JMX metric
-									this.jimi.taskExecutor.scheduleAtFixedRate(metric,
-											10,
-											Long.valueOf((Integer) metricDef.get("rate")), 
-											TimeUnit.SECONDS)
-									);
-
-						} catch (IOException e) { 								// if IO exception occurred
-
-							this.setSourceState(SourceState.BROKEN);
+	
 							
+	
+								Metric metric = new Metric(this, metricDef); 		// create JMX metric
+	
+								this.tasks.add( 									// schedule JMX metric
+										this.jimi.taskExecutor.scheduleAtFixedRate(metric,
+												10,
+												Long.valueOf((Integer) metricDef.get("rate")), 
+												TimeUnit.SECONDS)
+										);
+	
+						} catch (IOException e) { 								// if IO exception occurred
+	
+							this.setState(SourceState.BROKEN);
+	
 							log.warn(this + " IOException: " + e.getMessage()); // print warning message
-
+	
 							if (log.isDebugEnabled()) {
 								e.printStackTrace();
 							}
-
-							this.setBroken(true); 								// break the source
+	
 							break; 												// break the loop
-
+	
 						} catch (Exception e) { 								// if not an IO exception just skip metric creation
 							log.error(this + " non-IOException: " + e.getMessage());
 						}
@@ -105,11 +114,10 @@ public abstract class Source implements Runnable {
 			log.info(this + " metrics are scheduled");
 		}
 	}
-	
-	public void init(Jimi jimi) {
+
+	public void init() {
 
 		this.setLabel();
-		this.setJimi(jimi);
 		this.setBroken(false);
 		
 		if (this.getProps() == null) {
@@ -121,20 +129,10 @@ public abstract class Source implements Runnable {
 		this.props.put("label", this.label);
 
 		if (this.isOnline()) {
-			
-			this.setSourceState(SourceState.ONLINE);
-			
-			if (this.setMBeanServerConnection()) {
-				this.setSourceState(SourceState.CONNECTED);
-				this.setPropertiesFromMBean();
-			} else {
-				this.setSourceState(SourceState.BROKEN);
-			}
-
+			this.setState(SourceState.ONLINE);
 		} else {
-			this.setSourceState(SourceState.OFFLINE);
+			this.setState(SourceState.OFFLINE);
 		}
-
 	}
 	
 	protected Boolean isOnline() {
@@ -159,10 +157,10 @@ public abstract class Source implements Runnable {
 	}
 	
 	
-	protected void setPropertiesFromMBean() {
+	public void setPropertiesFromMBean() {
 
 
-		if ( this.getSourceState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
+		if ( this.getState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
 
 			try {
 				ObjectName objectName = new ObjectName(this.getPropsMBean());
@@ -188,7 +186,7 @@ public abstract class Source implements Runnable {
 				}
 			} catch (Exception e) {
 
-				this.setSourceState(SourceState.BROKEN);
+				this.setState(SourceState.BROKEN);
 				
 				if (log.isDebugEnabled()) {
 					e.printStackTrace();
@@ -205,9 +203,10 @@ public abstract class Source implements Runnable {
 				task.cancel(true);
 				log.debug(this + " task cancelation status is " + task.isCancelled());
 			}
+			
+			this.tasks = new HashSet<ScheduledFuture<?>>();
 		}
-		
-		log.info(this + " source shutdown");
+		this.setState(SourceState.SHUTDOWN);
 	}
 	
 	public boolean isConnected() {
@@ -316,13 +315,26 @@ public abstract class Source implements Runnable {
 		this.countdown = countdown;
 	}
 
-	public synchronized SourceState getSourceState() {
-		return sourceState;
+	public synchronized SourceState getState() {
+		return state;
 	}
 
-	public synchronized void setSourceState(SourceState sourceState) {
-		log.info(this + " change state to " + sourceState);
-		this.sourceState = sourceState;
+	public synchronized void setState(SourceState state) {
+		
+		if (state == SourceState.BROKEN) {
+			
+			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {
+				this.state = state;
+				++this.breakCount;
+			} else {
+				log.error(this + " can't be broken when " + this.state);
+			}
+			
+		} else {
+			this.state = state;
+		}
+		
+		log.info(this + " state: " + this.getState());
 	}
 	
 	

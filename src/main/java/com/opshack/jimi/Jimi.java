@@ -1,17 +1,16 @@
 package com.opshack.jimi;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +35,14 @@ public class Jimi {
 
 	private ArrayList<Source> sources;
 	private int executorThreadPoolSize = 2;
-	private int sourceConnectionTimeout = 3000;
+	private int sourceConnectionTimeout = 10000;
 	
 
 	private ArrayList<Writer> writers;
-	public ScheduledExecutorService taskExecutor;
-	ExecutorService sourceExecutor;
+	public final ScheduledExecutorService internalExecutor;
+	public final ScheduledExecutorService sourceExecutor;
+	public final ScheduledExecutorService taskExecutor;
+	
 	public HashMap metricGroups = new HashMap();
 
 	Jimi() throws FileNotFoundException {
@@ -78,14 +79,17 @@ public class Jimi {
 			
 			log.info("Available metrics: " + metricGroups.keySet());
 		}
+		
+		log.info("Shared executor size is: " + executorThreadPoolSize);
+		
+		this.internalExecutor = Executors.newScheduledThreadPool(2);// cancel long running workers
+		this.sourceExecutor = Executors.newScheduledThreadPool(5); 	// init, start workers
+		this.taskExecutor = Executors.newScheduledThreadPool(executorThreadPoolSize); 	// run tasks
+		
 	}
 
 	public void start() throws Exception {
 
-		log.info("Shared executor size is: " + executorThreadPoolSize);
-		
-		taskExecutor = Executors.newScheduledThreadPool(executorThreadPoolSize);
-		sourceExecutor = Executors.newFixedThreadPool(3);
 
 		for (Writer writer : writers) {
 
@@ -100,87 +104,136 @@ public class Jimi {
 
 		compileSources(); // process proxy sources
 
-		int counter = 0;
+		for (Source source : sources) {
+			source.setJimi(this);
+			this.initSource(source, 1);
+		}
+		
+		this.startReporter(this);
+		
 		while (true) {
 
 			for (Source source : sources) {
 
-				switch(source.getSourceState()) {
-				
-				case INIT:
-					
-					source.init(this);
-					if (source.getSourceState().equals(SourceState.CONNECTED)) {
-						source.run();
-					}
-					break;
-					
+				switch(source.getState()) {
 				case ONLINE:
-					
+					source.setState(SourceState.CONNECTING);
+					this.startSource(source);
 					break;
-					
-				case BROKEN:
-					source.setSourceState(SourceState.RECOVERY);
-					source.shutdown();
-					Thread.sleep(12000);
-					source.setSourceState(SourceState.INIT);
-					break;
-					
-				case OFFLINE:
 
+				case OFFLINE:
+					source.setState(SourceState.RECOVERY);
+					this.initSource(source, 300);
 					break;
-					
+
+				case BROKEN:
+					source.setState(SourceState.SHUTINGDOWN);
+					source.shutdown();
+					break;
+
+				case SHUTDOWN:
+					source.setState(SourceState.RECOVERY);
+					this.initSource(source, 5);
+					break;
+
 				default:
+					//log("unhandled state " + worker.name + ": " + worker.state);
 					break;
 				}
 			}  	
-				
-				
-
-//					Future<?> future = sourceExecutor.submit(Executors.callable(source));
-//					try {
-//						future.get(3000, TimeUnit.MILLISECONDS);	
-//						
-//					} catch(TimeoutException e) {
-//						
-//						if (log.isDebugEnabled()) {
-//							e.printStackTrace();
-//						} else {
-//							log.info("Can't wait, going to the next task");
-//						}
-//						
-//					} catch(Exception e) {
-//						
-//						if (log.isDebugEnabled()) {
-//							e.printStackTrace();
-//						} else {
-//							log.info("An exception occurred during initialization");
-//						}
-//					}
-
 
 			try {
 
 				Thread.sleep(1000); // sleep for 1 second then re-check
 
 			} catch (InterruptedException e) {
-				log.error("Thread interrupted.");
+				log.error("Jimi is interrupted ...");
 				e.printStackTrace();
 				System.exit(1);
 			}
-
-			counter++;
-			if (counter == 300) {
-				log.info("Jimi is running well. Sources count: " + sources.size());
-				for (Writer writer : writers) {
-					log.info(writer.getClass().getName() + " recieved " + writer.getEventCounter() + " events, total size is " + writer.getEventsSize() + " bytes.");
-				}
-				counter = 0;
-			}
 		}
-
 	}
 
+	
+	////
+	private void startSource(Source source) {
+
+		final Source s = source;
+		final ScheduledFuture<?> sourceHandle = sourceExecutor.schedule(new Runnable() {
+			public void run() {
+				s.start();
+			}
+		}, 1, TimeUnit.SECONDS);
+
+		// cancel w.start() if longer than X seconds
+		internalExecutor.schedule(new Runnable() {
+			public void run() {
+				if (!sourceHandle.isDone()) {
+					sourceHandle.cancel(true);
+					log.error(s + " start canceled: " + sourceHandle.isCancelled());
+					s.setState(SourceState.BROKEN);
+				}
+			}
+		}, 30, TimeUnit.SECONDS);
+	}
+
+
+	private void initSource(Source source, int t) {
+
+		final Source s = source;
+		final ScheduledFuture<?> sourceHandle = sourceExecutor.schedule(new Runnable() {
+			public void run() {
+				s.init();
+			}
+		}, t, TimeUnit.SECONDS);
+
+		// cancel w.init() if longer than X seconds
+		internalExecutor.schedule(new Runnable() {
+			public void run() {
+				if (!sourceHandle.isDone()) {
+					sourceHandle.cancel(true);
+					log.error(s + " init canceled: " + sourceHandle.isCancelled());
+					s.setState(SourceState.OFFLINE);
+				}
+			}
+		}, 30, TimeUnit.SECONDS);
+	}
+	
+	
+	private void startReporter(Jimi jimi) {
+		
+		final Jimi j = jimi;
+		internalExecutor.scheduleAtFixedRate(new Runnable() {
+			public void run() {
+				
+				int t = j.sources.size();   // total
+				int c = 0;					// connected
+				int o = 0;					// offline
+				int x = 0;					// others
+				
+				for (Source source: j.sources) {
+					switch (source.getState()) {
+					case CONNECTED:
+						++c;
+						break;
+					case OFFLINE:
+						++o;
+						break;
+					default:
+						++x;
+					}	
+					log.info("Report" + source + " break count: " + source.breakCount);
+				}
+				log.info("Report total: " + t + "; connected: " + c + "; offline: " + o +"; others: " + x);
+			}
+		}, 10, 30, TimeUnit.SECONDS);
+	}
+	
+	
+	
+	////
+	
+	
 	private void compileSources() throws Exception {
 
 		ArrayList<Source> compiledSources = new ArrayList<Source>();
@@ -198,6 +251,7 @@ public class Jimi {
 		this.sources.addAll(compiledSources);
 
 	}
+	
 
 	public static void main(String[] args) throws Exception {
 

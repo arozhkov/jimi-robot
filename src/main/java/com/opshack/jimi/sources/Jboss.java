@@ -16,59 +16,47 @@ public class Jboss extends Source {
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	public synchronized void setMBeanServerConnection() throws InterruptedException {
-		
-		if (!super.isConnected()) {
-			
-			try {
-				
-				JMXServiceURL serviceURL = new JMXServiceURL("service:jmx:remoting-jmx://" 
-						+ this.getHost() + ":" 
-						+ this.getPort());
-				
-				log.debug(this + " serviceURL " + serviceURL);
-				
-				Map<String,Object> h = new HashMap<String, Object>();
-				
-				String[] credentials = new String[2];
-				credentials[0] = this.getUsername();
-				credentials[1] = this.getPassword();
-		        
-				h.put(JMXConnector.CREDENTIALS, credentials);
+	public synchronized boolean setMBeanServerConnection() {
 
-				log.debug(this + " connecting... ");
-				this.jmxConnector = JMXConnectorFactory.connect(serviceURL, h);
-				this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
+		try {
 
-			} catch (Exception e) {
-				
-				this.setSourceState(SourceState.BROKEN);
-				
-				if (log.isDebugEnabled()) {
-					e.printStackTrace();
-				}
+			JMXServiceURL serviceURL = new JMXServiceURL(
+					"service:jmx:remoting-jmx://" 
+					+ this.getHost() + ":"
+					+ this.getPort());
 
-				this.mbeanServerConnection = null;
+			log.debug(this + " serviceURL " + serviceURL);
 
-				if (this.jmxConnector != null) {
-					
-					try {
-						this.jmxConnector.close();
-						
-					} catch (Exception e1) {
+			Map<String, Object> h = new HashMap<String, Object>();
 
-						e1.printStackTrace();
-					}
-				}
-				
-				throw new InterruptedException(e.getMessage());
+			String[] credentials = new String[2];
+			credentials[0] = this.getUsername();
+			credentials[1] = this.getPassword();
+
+			h.put(JMXConnector.CREDENTIALS, credentials);
+
+			log.debug(this + " connecting... ");
+			this.jmxConnector = JMXConnectorFactory.connect(serviceURL, h);
+			this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
+
+		} catch (Exception e) {
+
+			if (log.isDebugEnabled()) {
+				e.printStackTrace();
 			}
 
-			this.setSourceState(SourceState.CONNECTED);
-			
-		} else {
-			
-			log.warn(this + " is already connected");
+			this.mbeanServerConnection = null;
+			if (this.jmxConnector != null) {
+
+				try {
+					this.jmxConnector.close();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+
+			return false;
 		}
+		return true;
 	}
 }

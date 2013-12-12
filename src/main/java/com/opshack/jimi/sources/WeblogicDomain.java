@@ -40,8 +40,7 @@ public class WeblogicDomain extends Source {
 	
 	
 	@Override
-	public void setMBeanServerConnection()
-			throws InterruptedException {
+	public boolean setMBeanServerConnection() {
 		
 		String protocol = "t3";
 		int port = this.getPort();
@@ -55,7 +54,7 @@ public class WeblogicDomain extends Source {
 		} catch (MalformedURLException e) {
 			
 			log.error(this + " MalformedURLException : " + protocol + "://" + this.getHost() + ":"  + this.getPort() + mserver);
-			throw new InterruptedException();		
+			return false;		
 		}
 		
 		Hashtable h = new Hashtable();
@@ -70,12 +69,9 @@ public class WeblogicDomain extends Source {
 		} catch (IOException e) {
 			
 			log.warn(this + " IO Exception occurred during connection to Weblogic Administration server");
-			Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
-			
-			this.setBroken(true);
-			throw new InterruptedException("IO Exception occurred during connection to Weblogic Administration server");	
+			return false;	
 		}
-		
+		return true;		
 	}
 	
 	public static ObjectName[] getServerRuntimes() throws Exception {
