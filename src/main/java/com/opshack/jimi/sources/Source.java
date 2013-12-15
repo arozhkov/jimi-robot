@@ -8,14 +8,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
@@ -43,9 +41,7 @@ public abstract class Source {
 	
 	protected Jimi jimi;
 
-	private boolean broken = true;
-	private boolean definitlyBroken = true;
-	private int countdown = 0;
+	public long totalBreakCount = 0;
 	public long breakCount = 0;
 	
 	private SourceState state = SourceState.INIT;
@@ -57,11 +53,8 @@ public abstract class Source {
 	
 	public abstract boolean setMBeanServerConnection();
 	
-	public MBeanServerConnection getMBeanServerConnection() {
-		return this.mbeanServerConnection;
-	}
 	
-	public void start() {
+	public synchronized void start() {
 			
 		if (setMBeanServerConnection()) {
 			this.setState(SourceState.CONNECTED);
@@ -74,21 +67,16 @@ public abstract class Source {
 
 			for (String group: this.metrics) {
 	
-				ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
-	
+				ArrayList<HashMap> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
 				if (metricDefs != null && metricDefs.size() > 0) {
 	
-					for (Map metricDef: metricDefs) {
+					for (HashMap metricDef: metricDefs) {
 	
 						try {
-	
-							
-	
 								Metric metric = new Metric(this, metricDef); 		// create JMX metric
-	
 								this.tasks.add( 									// schedule JMX metric
 										this.jimi.taskExecutor.scheduleAtFixedRate(metric,
-												10,
+												0,
 												Long.valueOf((Integer) metricDef.get("rate")), 
 												TimeUnit.SECONDS)
 										);
@@ -118,7 +106,6 @@ public abstract class Source {
 	public void init() {
 
 		this.setLabel();
-		this.setBroken(false);
 		
 		if (this.getProps() == null) {
 			this.setProps(new HashMap<String, Object>());	
@@ -152,13 +139,11 @@ public abstract class Source {
 				//Ignore
 			}
 		}
-
 		return true;
 	}
 	
 	
 	public void setPropertiesFromMBean() {
-
 
 		if ( this.getState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
 
@@ -180,6 +165,9 @@ public abstract class Source {
 
 							this.props.put(attributeName, value);
 							log.debug(this + " set " + attributeName + " = " + value);
+							if (attributeName.equals("Name")) {
+								log.info(this + " missmatch check: " + value);
+							}
 						}
 						break;
 					}
@@ -209,18 +197,38 @@ public abstract class Source {
 		this.setState(SourceState.SHUTDOWN);
 	}
 	
-	public boolean isConnected() {
-		
-		if (this.mbeanServerConnection == null) {
-			return false;
-		}
-		return true;
-	}
 	
-	public synchronized void setBroken(boolean broken) {
+	public synchronized void setState(SourceState state) {
+
+		switch(state) {
+		case BROKEN:
+			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {	
+				
+				++this.breakCount;
+				++this.totalBreakCount;
+				
+				if (this.breakCount >= 5) {
+					this.state = SourceState.OFFLINE;
+				} else {
+					this.state = state;
+				}
+				
+			} else {
+				log.error(this + " can't be broken when " + this.state);
+			}
+			break;
+
+		case CONNECTED:
+			this.breakCount = 0;
+			this.state = state;
+			break;
+
+		default:
+			this.state = state;
+			break;
+		}
 		
-		this.broken = broken;
-		this.mbeanServerConnection = null;
+		log.info(this + " state: " + this.getState());
 	}
 	
 	public String toString() {
@@ -229,6 +237,10 @@ public abstract class Source {
 	
 
 	// getters and setters, boring staff
+	public MBeanServerConnection getMBeanServerConnection() {
+		return this.mbeanServerConnection;
+	}
+	
 	public String getHost() {
 		return host;
 	}
@@ -264,17 +276,6 @@ public abstract class Source {
 		this.metrics = metrics;
 	}
 
-	public synchronized boolean isBroken() {
-		return broken;
-	}
-
-	public synchronized boolean isDefinitlyBroken() {
-		return definitlyBroken;
-	}
-	public synchronized void setDefinitlyBroken(boolean definitlyBroken) {
-		this.definitlyBroken = definitlyBroken;
-	}
-
 	public String getPropsMBean() {
 		return this.propsMBean;
 	}
@@ -307,46 +308,12 @@ public abstract class Source {
 		this.jimi = jimi;
 	}
 
-	public int getCountdown() {
-		return countdown;
-	}
-
-	public void setCountdown(int countdown) {
-		this.countdown = countdown;
-	}
-
 	public synchronized SourceState getState() {
 		return state;
 	}
 
-	public synchronized void setState(SourceState state) {
-
-		switch(state) {
-		case BROKEN:
-			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {		
-				++this.breakCount;
-				if (this.breakCount >= 5) {
-					this.state = SourceState.OFFLINE;
-				} else {
-					this.state = state;
-				}
-			} else {
-				log.error(this + " can't be broken when " + this.state);
-			}
-			break;
-
-		case CONNECTED:
-			this.breakCount = 0;
-			this.state = state;
-			break;
-
-		default:
-			this.state = state;
-			break;
-		}
-		
-		log.info(this + " state: " + this.getState());
+	public synchronized long getTotalBreakCount() {
+		return totalBreakCount;
 	}
-	
-	
+
 }

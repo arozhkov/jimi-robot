@@ -34,9 +34,15 @@ public class Jimi {
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private ArrayList<Source> sources;
-	private int executorThreadPoolSize = 2;
-	private int sourceConnectionTimeout = 10000;
 	
+	private int executorThreadPoolSize = 2;
+	private int internalExecutorThreadPoolSize = 2;
+	private int sourceExecutorThreadPoolSize = 5;
+	private int sourceConnectionTimeout = 10000;
+	private int mainLoopTime = 100;
+	private int sourceStartTime = 10;
+	private int offlineRecoveryTime = 300000;
+	private int breakRecoveryTime = 10;
 
 	private ArrayList<Writer> writers;
 	public final ScheduledExecutorService internalExecutor;
@@ -82,9 +88,9 @@ public class Jimi {
 		
 		log.info("Shared executor size is: " + executorThreadPoolSize);
 		
-		this.internalExecutor = Executors.newScheduledThreadPool(2);// cancel long running workers
-		this.sourceExecutor = Executors.newScheduledThreadPool(5); 	// init, start workers
-		this.taskExecutor = Executors.newScheduledThreadPool(executorThreadPoolSize); 	// run tasks
+		this.internalExecutor = Executors.newScheduledThreadPool(this.internalExecutorThreadPoolSize);// cancel long running workers
+		this.sourceExecutor = Executors.newScheduledThreadPool(this.sourceExecutorThreadPoolSize); 	// init, start workers
+		this.taskExecutor = Executors.newScheduledThreadPool(this.executorThreadPoolSize); 	// run tasks
 		
 	}
 
@@ -123,7 +129,7 @@ public class Jimi {
 
 				case OFFLINE:
 					source.setState(SourceState.RECOVERY);
-					this.initSource(source, 300);
+					this.initSource(source, this.offlineRecoveryTime);
 					break;
 
 				case BROKEN:
@@ -133,7 +139,7 @@ public class Jimi {
 
 				case SHUTDOWN:
 					source.setState(SourceState.RECOVERY);
-					this.initSource(source, 5);
+					this.initSource(source, this.breakRecoveryTime);
 					break;
 
 				default:
@@ -144,7 +150,7 @@ public class Jimi {
 
 			try {
 
-				Thread.sleep(1000); // sleep for 1 second then re-check
+				Thread.sleep(this.mainLoopTime); // sleep for 1 second then re-check
 
 			} catch (InterruptedException e) {
 				log.error("Jimi is interrupted ...");
@@ -163,7 +169,7 @@ public class Jimi {
 			public void run() {
 				s.start();
 			}
-		}, 1, TimeUnit.SECONDS);
+		}, 10, TimeUnit.MILLISECONDS);
 
 		// cancel w.start() if longer than X seconds
 		internalExecutor.schedule(new Runnable() {
@@ -174,7 +180,7 @@ public class Jimi {
 					s.setState(SourceState.BROKEN);
 				}
 			}
-		}, 15, TimeUnit.SECONDS);
+		}, 60, TimeUnit.SECONDS);
 	}
 
 
@@ -185,7 +191,7 @@ public class Jimi {
 			public void run() {
 				s.init();
 			}
-		}, t, TimeUnit.SECONDS);
+		}, t, TimeUnit.MILLISECONDS);
 
 		// cancel w.init() if longer than X seconds
 		internalExecutor.schedule(new Runnable() {
@@ -196,7 +202,7 @@ public class Jimi {
 					s.setState(SourceState.OFFLINE);
 				}
 			}
-		}, t+15, TimeUnit.SECONDS);
+		}, (t * 1000) + 15, TimeUnit.SECONDS);
 	}
 	
 	
@@ -225,7 +231,7 @@ public class Jimi {
 				}
 				log.info("Report total: " + t + "; connected: " + c + "; offline: " + o +"; others: " + x);
 			}
-		}, 10, 30, TimeUnit.SECONDS);
+		}, 60, 60, TimeUnit.SECONDS);
 	}
 	
 	
@@ -344,5 +350,54 @@ public class Jimi {
 
 	public HashMap getMetricGroups() {
 		return metricGroups;
+	}
+
+	public int getInternalExecutorThreadPoolSize() {
+		return internalExecutorThreadPoolSize;
+	}
+
+	public void setInternalExecutorThreadPoolSize(int internalExecutorThreadPoolSize) {
+		this.internalExecutorThreadPoolSize = internalExecutorThreadPoolSize;
+	}
+
+	public int getSourceExecutorThreadPoolSize() {
+		return sourceExecutorThreadPoolSize;
+	}
+
+	public void setSourceExecutorThreadPoolSize(int sourceExecutorThreadPoolSize) {
+		this.sourceExecutorThreadPoolSize = sourceExecutorThreadPoolSize;
+	}
+
+	public int getMainLoopTime() {
+		return mainLoopTime;
+	}
+
+	public void setMainLoopTime(int mainLoopTime) {
+		this.mainLoopTime = mainLoopTime;
+	}
+
+	public int getSourceStartTime() {
+		return sourceStartTime;
+	}
+
+	public void setSourceStartTime(int sourceStartTime) {
+		this.sourceStartTime = sourceStartTime;
+	}
+
+	public int getOfflineRecoveryTime() {
+		return offlineRecoveryTime;
+	}
+
+	public void setOfflineRecoveryTime(int offlineRecoveryTime) {
+		this.offlineRecoveryTime = offlineRecoveryTime;
+	}
+
+	public int getBreakRecoveryTime() {
+		return breakRecoveryTime;
+	}
+
+	public void setBreakRecoveryTime(int breakRecoveryTime) {
+		this.breakRecoveryTime = breakRecoveryTime;
 	}	
+	
 }

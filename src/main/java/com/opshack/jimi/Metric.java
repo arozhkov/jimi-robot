@@ -157,8 +157,6 @@ public class Metric implements Runnable {
 						e.printStackTrace();
 					}
 
-					this.source.setBroken(true); 								// source must be shutdown
-
 				} catch (Exception e) {      
 					
 					log.warn(this.source + " non-IOException: " + e.getMessage());

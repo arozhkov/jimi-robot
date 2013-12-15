@@ -45,7 +45,7 @@ public class Event implements Serializable{
 		return this.ts;
 	}
 	
-	// timestamp wrapper 
+	// time stamp wrapper 
 	public class Timestamp {
 		
 		private final long ts;
