@@ -96,6 +96,7 @@ public class Metric implements Runnable {
 	
 	public void run() {
 
+		final long ts = System.currentTimeMillis();
 		if (this.source.getState().equals(SourceState.CONNECTED) && this.source.getMBeanServerConnection() != null) {
 
 			Set<String> labels = this.beans.keySet();
@@ -125,7 +126,7 @@ public class Metric implements Runnable {
 
 								if (subvalue != null && (subvalue instanceof Long || subvalue instanceof Integer)) {
 
-									this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(subvalue)));
+									this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(subvalue), ts));
 
 								} else {
 									log.error(this.source + " " + bean.getObjectName() + 
@@ -139,7 +140,7 @@ public class Metric implements Runnable {
 				
 						} else if (value instanceof Long || value instanceof Integer) {
 
-							this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(value)));
+							this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(value), ts));
 
 						} else  {
 							log.error(this.source + " " + bean.getObjectName() + 

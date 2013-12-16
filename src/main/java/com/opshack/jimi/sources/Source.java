@@ -54,7 +54,7 @@ public abstract class Source {
 	public abstract boolean setMBeanServerConnection();
 	
 	
-	public synchronized void start() {
+	public void start() {
 			
 		if (setMBeanServerConnection()) {
 			this.setState(SourceState.CONNECTED);
@@ -155,20 +155,22 @@ public abstract class Source {
 
 					for (ObjectInstance obj: objectInstances) {
 
-						log.info(this + " set properties from " + obj.getObjectName());
-						MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
+						synchronized(this) {
+							log.info(this + " set properties from " + obj.getObjectName());
+							MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
 
-						for (MBeanAttributeInfo attribute: attributes) {
+							for (MBeanAttributeInfo attribute: attributes) {
 
-							String attributeName = attribute.getName();
-							Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+								String attributeName = attribute.getName();
+								Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
 
-							this.props.put(attributeName, value);
-							log.debug(this + " set " + attributeName + " = " + value);
-							if (attributeName.equals("Name")) {
-								log.info(this + " missmatch check: " + value);
+								this.props.put(attributeName, value);
+								log.debug(this + " set " + attributeName + " = " + value);
+								if (attributeName.equals("Name")) {
+									log.info(this + " missmatch check: " + value + " for " + this.host + ":" + this.port);
+								}
 							}
-						}
+						}						
 						break;
 					}
 				}

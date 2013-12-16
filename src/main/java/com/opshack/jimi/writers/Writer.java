@@ -14,7 +14,7 @@ import com.opshack.jimi.Event;
 public abstract class Writer implements Runnable{
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
-	private LinkedBlockingQueue<Event> writerQueue = new LinkedBlockingQueue<Event>(5000);
+	private LinkedBlockingQueue<Event> writerQueue = new LinkedBlockingQueue<Event>(10000);
 	private long eventCounter = 0;
 	private long eventsSize = 0;
 	private ArrayList<String> filter;

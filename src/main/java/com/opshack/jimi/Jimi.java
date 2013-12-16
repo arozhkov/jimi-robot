@@ -47,7 +47,7 @@ public class Jimi {
 	private ArrayList<Writer> writers;
 	public final ScheduledExecutorService internalExecutor;
 	public final ScheduledExecutorService sourceExecutor;
-	public final ScheduledExecutorService taskExecutor;
+	public final MetricExecutor taskExecutor;
 	
 	public HashMap metricGroups = new HashMap();
 
@@ -90,7 +90,7 @@ public class Jimi {
 		
 		this.internalExecutor = Executors.newScheduledThreadPool(this.internalExecutorThreadPoolSize);// cancel long running workers
 		this.sourceExecutor = Executors.newScheduledThreadPool(this.sourceExecutorThreadPoolSize); 	// init, start workers
-		this.taskExecutor = Executors.newScheduledThreadPool(this.executorThreadPoolSize); 	// run tasks
+		this.taskExecutor = new MetricExecutor(this.executorThreadPoolSize); //Executors.newScheduledThreadPool(this.executorThreadPoolSize); 	// run tasks
 		
 	}
 
@@ -213,8 +213,7 @@ public class Jimi {
 			public void run() {
 				
 				int t = j.sources.size();   // total
-				int c = 0;					// connected
-				int o = 0;					// offline
+				int c = 0;					// offline
 				int x = 0;					// others
 				
 				for (Source source: j.sources) {
@@ -222,14 +221,12 @@ public class Jimi {
 					case CONNECTED:
 						++c;
 						break;
-					case OFFLINE:
-						++o;
-						break;
 					default:
 						++x;
 					}
 				}
-				log.info("Report total: " + t + "; connected: " + c + "; offline: " + o +"; others: " + x);
+				log.info("Report sources total: " + t + "; connected: " + c + "; others: " + x);
+				log.info("Report executor avgExecTime: " + taskExecutor.getAverageTaskTime() + "; total execs: " + taskExecutor.getTotalTasks());
 			}
 		}, 60, 60, TimeUnit.SECONDS);
 	}

@@ -14,14 +14,14 @@ public class Event implements Serializable{
 	public final String value;
 	public final Timestamp ts;
 	
-	public Event(HashMap<String, Object> sourceProps, HashMap<String, Object> metricDef, String label, String value) {
+	public Event(HashMap<String, Object> sourceProps, HashMap<String, Object> metricDef, String label, String value, long ts) {
 		
 		this.id = UUID.randomUUID();
 		this.source = new HashMap<String, Object>(sourceProps);
 		this.metric = new HashMap<String, Object>(metricDef);
 		this.metric.put("label", new String(label));
 		this.value = new String(value);
-		this.ts = new Timestamp(System.currentTimeMillis());
+		this.ts = new Timestamp(ts);
 	}
 	
 	public UUID getId() {
