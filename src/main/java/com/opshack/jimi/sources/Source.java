@@ -51,14 +51,14 @@ public abstract class Source {
 	
 	private HashSet <ScheduledFuture<?>> tasks = new HashSet<ScheduledFuture<?>>();
 	
-	public abstract boolean setMBeanServerConnection();
 	
+	public abstract boolean setMBeanServerConnection();
 	
 	public void start() {
 			
 		if (setMBeanServerConnection()) {
-			this.setState(SourceState.CONNECTED);
 			this.setPropertiesFromMBean();
+			this.setState(SourceState.CONNECTED);
 		} else {
 			this.setState(SourceState.BROKEN);
 		}
@@ -143,9 +143,11 @@ public abstract class Source {
 	}
 	
 	
-	public void setPropertiesFromMBean() {
+	public boolean setPropertiesFromMBean() {
 
-		if ( this.getState().equals(SourceState.CONNECTED) && this.getPropsMBean() != null && !this.getPropsMBean().isEmpty() ) {
+		if (this.mbeanServerConnection != null 
+				&& this.getPropsMBean() != null 
+				&& !this.getPropsMBean().isEmpty() ) {
 
 			try {
 				ObjectName objectName = new ObjectName(this.getPropsMBean());
@@ -167,22 +169,23 @@ public abstract class Source {
 								this.props.put(attributeName, value);
 								log.debug(this + " set " + attributeName + " = " + value);
 								if (attributeName.equals("Name")) {
-									log.info(this + " missmatch check: " + value + " for " + this.host + ":" + this.port);
+									log.info(this + " missmatch check: " + value + " for " + this.host + ":" + this.port + 
+											"; obj count " + objectInstances.size());
 								}
 							}
-						}						
-						break;
+						}
 					}
 				}
 			} catch (Exception e) {
-
-				this.setState(SourceState.BROKEN);
 				
+				log.error(this + " " + e.getMessage() + " occurred during MBean properties setup");
 				if (log.isDebugEnabled()) {
 					e.printStackTrace();
 				}
+				return false;
 			} 
 		}
+		return true;
 	}
 
 	public void shutdown() {
@@ -195,15 +198,16 @@ public abstract class Source {
 			}
 			
 			this.tasks = new HashSet<ScheduledFuture<?>>();
+			this.mbeanServerConnection = null;
 		}
 		this.setState(SourceState.SHUTDOWN);
 	}
 	
 	
 	public synchronized void setState(SourceState state) {
-
-		switch(state) {
-		case BROKEN:
+		
+		if (state.equals(SourceState.BROKEN)) {
+			
 			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {	
 				
 				++this.breakCount;
@@ -218,16 +222,13 @@ public abstract class Source {
 			} else {
 				log.error(this + " can't be broken when " + this.state);
 			}
-			break;
-
-		case CONNECTED:
-			this.breakCount = 0;
+			
+		} else {
+			
+			if (state.equals(SourceState.CONNECTED)) {
+				this.breakCount = 0;
+			}
 			this.state = state;
-			break;
-
-		default:
-			this.state = state;
-			break;
 		}
 		
 		log.info(this + " state: " + this.getState());

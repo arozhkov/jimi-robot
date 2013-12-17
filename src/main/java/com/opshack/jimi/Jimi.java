@@ -141,10 +141,6 @@ public class Jimi {
 					source.setState(SourceState.RECOVERY);
 					this.initSource(source, this.breakRecoveryTime);
 					break;
-
-				default:
-					//log("unhandled state " + worker.name + ": " + worker.state);
-					break;
 				}
 			}  	
 
@@ -160,8 +156,7 @@ public class Jimi {
 		}
 	}
 
-	
-	////
+
 	private void startSource(Source source) {
 
 		final Source s = source;
@@ -213,7 +208,7 @@ public class Jimi {
 			public void run() {
 				
 				int t = j.sources.size();   // total
-				int c = 0;					// offline
+				int c = 0;					// connected
 				int x = 0;					// others
 				
 				for (Source source: j.sources) {
@@ -226,14 +221,12 @@ public class Jimi {
 					}
 				}
 				log.info("Report sources total: " + t + "; connected: " + c + "; others: " + x);
-				log.info("Report executor avgExecTime: " + taskExecutor.getAverageTaskTime() + "; total execs: " + taskExecutor.getTotalTasks());
+				log.info("Report executor avgExecTime: " + taskExecutor.getAverageTaskTime() 
+						+ "; total execs: " + taskExecutor.getTotalTasks()
+						+ "; current task count: " + taskExecutor.getInProgressTasks().size());
 			}
 		}, 60, 60, TimeUnit.SECONDS);
 	}
-	
-	
-	
-	////
 	
 	
 	private void compileSources() throws Exception {
