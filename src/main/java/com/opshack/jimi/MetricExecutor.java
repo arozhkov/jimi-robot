@@ -42,6 +42,12 @@ public class MetricExecutor extends ScheduledThreadPoolExecutor{
     }
 
     public synchronized double getAverageTaskTime() {
+    	
+    	if (totalTasks < 0) {
+    		totalTasks = 0;
+    		totalTime = 0;
+    	}
+    	
         return (totalTasks == 0) ? 0 : totalTime / totalTasks;
     }
 }

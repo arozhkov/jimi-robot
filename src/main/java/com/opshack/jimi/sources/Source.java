@@ -56,8 +56,7 @@ public abstract class Source {
 	
 	public void start() {
 			
-		if (setMBeanServerConnection()) {
-			this.setPropertiesFromMBean();
+		if (setMBeanServerConnection() && this.setPropertiesFromMBean()) {
 			this.setState(SourceState.CONNECTED);
 		} else {
 			this.setState(SourceState.BROKEN);
@@ -169,7 +168,7 @@ public abstract class Source {
 								this.props.put(attributeName, value);
 								log.debug(this + " set " + attributeName + " = " + value);
 								if (attributeName.equals("Name")) {
-									log.info(this + " missmatch check: " + value + " for " + this.host + ":" + this.port + 
+									log.info(this + " mismatch check: " + value + " for " + this.host + ":" + this.port + 
 											"; obj count " + objectInstances.size());
 								}
 							}
