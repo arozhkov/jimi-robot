@@ -3,6 +3,7 @@ package com.opshack.jimi.sources;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
@@ -16,6 +17,7 @@ public class Jvm  extends Source {
 	@Override
 	public synchronized boolean setMBeanServerConnection() {
 
+		JMXConnector jmxConnector = null;
 		try {
 
 			JMXServiceURL serviceURL = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" 
@@ -27,9 +29,9 @@ public class Jvm  extends Source {
 			Map<String,Object> h = new HashMap<String, Object>();
 			h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(this.jimi.getSourceConnectionTimeout()));
 
-			this.jmxConnector =  JMXConnectorFactory.newJMXConnector(serviceURL, h);
-			this.jmxConnector.connect();
-			this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
+			jmxConnector =  JMXConnectorFactory.newJMXConnector(serviceURL, h);
+			jmxConnector.connect();
+			this.mbeanServerConnection = jmxConnector.getMBeanServerConnection();
 
 		} catch (Exception e) {
 
@@ -38,10 +40,10 @@ public class Jvm  extends Source {
 			}
 
 			this.mbeanServerConnection = null;
-			if (this.jmxConnector != null) {
+			if (jmxConnector != null) {
 
 				try {
-					this.jmxConnector.close();				
+					jmxConnector.close();				
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}

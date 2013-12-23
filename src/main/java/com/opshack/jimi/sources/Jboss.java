@@ -18,6 +18,8 @@ public class Jboss extends Source {
 	@Override
 	public synchronized boolean setMBeanServerConnection() {
 
+		JMXConnector jmxConnector = null;
+		
 		try {
 
 			JMXServiceURL serviceURL = new JMXServiceURL(
@@ -36,8 +38,8 @@ public class Jboss extends Source {
 			h.put(JMXConnector.CREDENTIALS, credentials);
 
 			log.debug(this + " connecting... ");
-			this.jmxConnector = JMXConnectorFactory.connect(serviceURL, h);
-			this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
+			jmxConnector = JMXConnectorFactory.connect(serviceURL, h);
+			this.mbeanServerConnection = jmxConnector.getMBeanServerConnection();
 
 		} catch (Exception e) {
 
@@ -46,10 +48,10 @@ public class Jboss extends Source {
 			}
 
 			this.mbeanServerConnection = null;
-			if (this.jmxConnector != null) {
+			if (jmxConnector != null) {
 
 				try {
-					this.jmxConnector.close();
+					jmxConnector.close();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}

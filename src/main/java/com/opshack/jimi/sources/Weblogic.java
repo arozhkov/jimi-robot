@@ -3,6 +3,7 @@ package com.opshack.jimi.sources;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.naming.Context;
@@ -18,6 +19,7 @@ public class Weblogic extends Source {
 	@Override
 	public synchronized boolean setMBeanServerConnection() {
 		
+		JMXConnector jmxConnector = null;
 		try {
 
 			JMXServiceURL serviceURL = new JMXServiceURL(
@@ -34,22 +36,25 @@ public class Weblogic extends Source {
 			h.put(JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, "weblogic.management.remote");
 			h.put("jmx.remote.x.request.waiting.timeout", Long.valueOf(this.jimi.getSourceConnectionTimeout()));
 
-			this.jmxConnector = JMXConnectorFactory.newJMXConnector(serviceURL, h);
-			this.jmxConnector.connect();
-			this.mbeanServerConnection = this.jmxConnector.getMBeanServerConnection();
+			log.info(this + " open " + serviceURL);
+			jmxConnector = JMXConnectorFactory.newJMXConnector(serviceURL, h);
+			jmxConnector.connect();
+			this.mbeanServerConnection = jmxConnector.getMBeanServerConnection();
 
 		} catch (Exception e) {
 
+			log.error(this + " " + e.getMessage() + " in setMBeanServerConnection");
 			if (log.isDebugEnabled()) {
 				e.printStackTrace();
 			}
 
 			this.mbeanServerConnection = null;
-			if (this.jmxConnector != null) {
+			if (jmxConnector != null) {
 
 				try {
-					this.jmxConnector.close();				
+					jmxConnector.close();				
 				} catch (Exception e1) {
+					log.error(this + " " + e1.getMessage() + " after Exception in setMBeanServerConnection");
 					e1.printStackTrace();
 				}
 			}	

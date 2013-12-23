@@ -16,7 +16,6 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,7 @@ public abstract class Source {
 	
 	private SourceState state = SourceState.INIT;
 	
-	protected JMXConnector jmxConnector;
+	//protected JMXConnector jmxConnector;
 	protected MBeanServerConnection mbeanServerConnection;
 	
 	private HashSet <ScheduledFuture<?>> tasks = new HashSet<ScheduledFuture<?>>();
