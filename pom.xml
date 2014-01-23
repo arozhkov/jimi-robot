@@ -13,6 +13,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	<repositories>
+		<repository>
+		  <id>clojars.org</id>
+		  <url>http://clojars.org/repo</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -60,6 +66,11 @@
   <artifactId>xnio-api</artifactId>
   <version>3.0.3.GA</version>
 </dependency>
+        <dependency>
+        	<groupId>com.aphyr</groupId>
+        	<artifactId>riemann-java-client</artifactId>
+        	<version>0.2.8</version>
+        </dependency>
 	</dependencies>
 
 	<build>

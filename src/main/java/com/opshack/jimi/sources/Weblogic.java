@@ -52,13 +52,14 @@ public class Weblogic extends Source {
 			if (jmxConnector != null) {
 
 				try {
-					jmxConnector.close();				
+					jmxConnector.close();
 				} catch (Exception e1) {
 					log.error(this + " " + e1.getMessage() + " after Exception in setMBeanServerConnection");
 					e1.printStackTrace();
+				} finally {
+					jmxConnector = null;
 				}
 			}	
-			
 			return false;
 		}
 		return true;

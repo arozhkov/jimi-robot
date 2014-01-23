@@ -5,13 +5,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.TypeDescription;
@@ -27,6 +33,7 @@ import com.opshack.jimi.sources.WeblogicDomain;
 import com.opshack.jimi.writers.Console;
 import com.opshack.jimi.writers.Graphite;
 import com.opshack.jimi.writers.Kafka;
+import com.opshack.jimi.writers.Riemann;
 import com.opshack.jimi.writers.Writer;
 
 public class Jimi {
@@ -247,6 +254,36 @@ public class Jimi {
 
 	}
 	
+	private static String compileConfigFile(String configFile) {
+		
+		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
+		ve.init();
+		
+		Map<String, String> env = System.getenv();
+
+		VelocityContext configContext = new VelocityContext();
+		configContext.put("env", env);
+		
+		Template template = null;
+
+		try
+		{
+		   template = ve.getTemplate(configFile);
+		} catch(Exception e) {
+			System.out.println("Get configuration file template: " + e.getMessage());
+		}
+
+		StringWriter sw = new StringWriter();
+		
+		if (template != null) {
+			template.merge( configContext, sw );
+		}
+		
+		ve = null;
+		
+		return sw.toString();
+	}
 
 	public static void main(String[] args) throws Exception {
 
@@ -266,9 +303,13 @@ public class Jimi {
 		}
 
 		try {
-
-			InputStream configFile = new FileInputStream(new File(args[0]));
-
+			
+			String configuration = Jimi.compileConfigFile(args[0]);
+			
+			if (configuration == null || configuration.isEmpty()) {
+				throw new Exception("Empty configuration");
+			}
+			
 			log.info("Load configuration for " + System.getProperty("jimi.name"));
 
 			Constructor configConstructor = new Constructor(Jimi.class);
@@ -281,24 +322,18 @@ public class Jimi {
 			configConstructor.addTypeDescription(new TypeDescription(Graphite.class, "!graphite"));
 			configConstructor.addTypeDescription(new TypeDescription(Console.class, "!console"));
 			configConstructor.addTypeDescription(new TypeDescription(Kafka.class, "!kafka"));
+			configConstructor.addTypeDescription(new TypeDescription(Riemann.class, "!riemann"));
 
 			Yaml configYaml = new Yaml(configConstructor);
-			Jimi jimi = (Jimi) configYaml.load(configFile);
+			Jimi jimi = (Jimi) configYaml.load(configuration);
 
 			jimi.start();
-
-		} catch (FileNotFoundException e) {
-
-			log.error("FileNotFoundException occured. Please check configuration file path.");
-			e.printStackTrace();
-			System.exit(1);
 
 		} catch (Exception e) {
 
 			log.error(e.getClass() + " occured. Please check configuration.");
 			e.printStackTrace();
 			System.exit(1);
-
 		}
 	}
 
