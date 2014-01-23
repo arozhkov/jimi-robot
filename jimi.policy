@@ -1,5 +1,9 @@
 
 grant { 
   permission javax.management.MBeanTrustPermission "register";
+  
+  permission java.lang.RuntimePermission "stopThread";
+  permission java.lang.RuntimePermission "modifyThread";
+  permission java.lang.RuntimePermission "modifyThreadGroup";
 };
 

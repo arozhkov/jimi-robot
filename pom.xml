@@ -4,7 +4,7 @@
 
 	<groupId>com.opshack</groupId>
 	<artifactId>jimi</artifactId>
-	<version>0.3.8</version>
+	<version>0.3.10</version>
 	<packaging>jar</packaging>
 
 	<name>jimi-robot</name>
@@ -13,6 +13,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	<repositories>
+		<repository>
+		  <id>clojars.org</id>
+		  <url>http://clojars.org/repo</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -54,6 +60,16 @@
             <groupId>com.github.sgroschupf</groupId>
             <artifactId>zkclient</artifactId>
             <version>0.1</version>
+        </dependency>
+        <dependency>
+  <groupId>org.jboss.xnio</groupId>
+  <artifactId>xnio-api</artifactId>
+  <version>3.0.3.GA</version>
+</dependency>
+        <dependency>
+        	<groupId>com.aphyr</groupId>
+        	<artifactId>riemann-java-client</artifactId>
+        	<version>0.2.8</version>
         </dependency>
 	</dependencies>
 

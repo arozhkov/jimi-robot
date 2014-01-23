@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
@@ -39,8 +40,7 @@ public class WeblogicDomain extends Source {
 	
 	
 	@Override
-	public void setMBeanServerConnection()
-			throws InterruptedException {
+	public boolean setMBeanServerConnection() {
 		
 		String protocol = "t3";
 		int port = this.getPort();
@@ -54,7 +54,7 @@ public class WeblogicDomain extends Source {
 		} catch (MalformedURLException e) {
 			
 			log.error(this + " MalformedURLException : " + protocol + "://" + this.getHost() + ":"  + this.getPort() + mserver);
-			throw new InterruptedException();		
+			return false;		
 		}
 		
 		Hashtable h = new Hashtable();
@@ -69,12 +69,9 @@ public class WeblogicDomain extends Source {
 		} catch (IOException e) {
 			
 			log.warn(this + " IO Exception occurred during connection to Weblogic Administration server");
-			Thread.sleep(30000); // sleep 30 seconds then mark thread as broken and interrupt it
-			
-			this.setBroken(true);
-			throw new InterruptedException("IO Exception occurred during connection to Weblogic Administration server");	
+			return false;	
 		}
-		
+		return true;		
 	}
 	
 	public static ObjectName[] getServerRuntimes() throws Exception {
@@ -110,7 +107,7 @@ public class WeblogicDomain extends Source {
 				source.setUsername(this.getUsername());
 				source.setPassword(this.getPassword());
 				
-				source.setProps(new LinkedHashMap<String, Object>(this.getProps()));
+				source.setProps(new HashMap<String, Object>(this.getProps()));
 				source.setPropsMBean(this.getPropsMBean());
 				
 				source.setMetrics(this.getMetrics());

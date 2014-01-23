@@ -53,12 +53,12 @@ The last element of this file, `executorThreadPoolSize` property, defines the si
 ```yaml
 writers: 
   - !console
-    format: "${source.label} ${metric.get('label')} ${value} ${ts.format('hh:mm:ss.SSS')}"
+    format: "${source.get('label')} ${metric.get('label')} ${value} ${ts.format('hh:mm:ss.SSS')}"
  
   - !graphite
     host: 172.0.0.1
     port: 2003
-    format: "jimi.${source.label}.${metric.get('rate')}s.${metric.get('label')} ${value} ${ts.s}"
+    format: "jimi.${source.get('label')}.${metric.get('rate')}s.${metric.get('label')} ${value} ${ts.s}"
         
 sources:
   - !jvm

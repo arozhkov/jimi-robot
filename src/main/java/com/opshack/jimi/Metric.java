@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opshack.jimi.sources.Source;
+import com.opshack.jimi.sources.SourceState;
 import com.opshack.jimi.writers.Writer;
 
 public class Metric implements Runnable {
@@ -23,7 +24,7 @@ public class Metric implements Runnable {
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
 	private Source source;
-	private Map metricDef;
+	private HashMap metricDef;
 	private ObjectName objectName;
 	private HashMap<String, ObjectInstance> beans = new HashMap<String, ObjectInstance>();
 	
@@ -33,11 +34,11 @@ public class Metric implements Runnable {
 		this.source = source;
 		
 		log.debug(this.source + " " + metricDef + " creat metric");
-		this.metricDef = metricDef;
+		this.metricDef = (HashMap) metricDef;
 		
 		this.objectName = new ObjectName((String) this.metricDef.get("mbean"));
 		
-		if (this.source.isConnected() && !this.source.isBroken()) {
+		if (this.source.getState().equals(SourceState.CONNECTED)) {
 			
 			log.debug(this.source + " " + this.metricDef + " getting mbean(s)");
 			Set<ObjectInstance> beans = new HashSet<ObjectInstance>();
@@ -95,16 +96,21 @@ public class Metric implements Runnable {
 	
 	public void run() {
 
-		if (this.source.isConnected() && !this.source.isBroken()) {
+		final long ts = System.currentTimeMillis();
+		if (this.source.getState().equals(SourceState.CONNECTED) && this.source.getMBeanServerConnection() != null) {
 
 			Set<String> labels = this.beans.keySet();
 			for (String label: labels) {
 
 				try {
 				
-					ObjectInstance bean = this.beans.get(label);	
-					Object value = this.source.getMBeanServerConnection().getAttribute(bean.getObjectName(), (String) this.metricDef.get("attr"));
-
+					ObjectInstance bean = this.beans.get(label);
+					Object value = null;
+					
+					synchronized(this.source) {
+						value = this.source.getMBeanServerConnection().getAttribute(bean.getObjectName(), (String) this.metricDef.get("attr"));
+					}
+					
 					if (value != null) {
 
 						log.debug(this.source + " " + bean.getObjectName() + 
@@ -120,7 +126,7 @@ public class Metric implements Runnable {
 
 								if (subvalue != null && (subvalue instanceof Long || subvalue instanceof Integer)) {
 
-									this.write(new Event(this.source, this.metricDef, label, String.valueOf(subvalue)));
+									this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(subvalue), ts));
 
 								} else {
 									log.error(this.source + " " + bean.getObjectName() + 
@@ -134,7 +140,7 @@ public class Metric implements Runnable {
 				
 						} else if (value instanceof Long || value instanceof Integer) {
 
-							this.write(new Event(this.source, this.metricDef, label, String.valueOf(value)));
+							this.write(new Event(this.source.getProps(), this.metricDef, label, String.valueOf(value), ts));
 
 						} else  {
 							log.error(this.source + " " + bean.getObjectName() + 
@@ -144,13 +150,13 @@ public class Metric implements Runnable {
 					
 				} catch (IOException e) {
 					
+					this.source.setState(SourceState.BROKEN);
+					
 					log.warn(this.source + " IOException: " + e.getMessage());
 
 					if (log.isDebugEnabled()) {
 						e.printStackTrace();
 					}
-
-					this.source.setBroken(true); 								// source must be shutdown
 
 				} catch (Exception e) {      
 					

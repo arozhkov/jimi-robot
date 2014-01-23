@@ -2,40 +2,37 @@ package com.opshack.jimi;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-
-import com.opshack.jimi.sources.Source;
 
 public class Event implements Serializable{
 
+	private static final long serialVersionUID = -5913264590485616558L;
 	private final UUID id;
-	public final Source source;
-	private final Map metric;
+	public final HashMap<String, Object> source;
+	private final HashMap<String, Object> metric;
 	public final String value;
 	public final Timestamp ts;
 	
-	public Event(Source source, Map metricDef, String label, String value) {
+	public Event(HashMap<String, Object> sourceProps, HashMap<String, Object> metricDef, String label, String value, long ts) {
 		
 		this.id = UUID.randomUUID();
-		this.source = source;
-		this.metric = new HashMap(metricDef);
-		this.metric.put("label", label);
-		this.value = value;
-		this.ts = new Timestamp(System.currentTimeMillis());
+		this.source = new HashMap<String, Object>(sourceProps);
+		this.metric = new HashMap<String, Object>(metricDef);
+		this.metric.put("label", new String(label));
+		this.value = new String(value);
+		this.ts = new Timestamp(ts);
 	}
 	
 	public UUID getId() {
 		return this.id;
 	}
 
-	public Source getSource() {
+	public HashMap<String, Object> getSource() {
 		return this.source;
 	}
 
-	public Map getMetric() {
+	public HashMap<String, Object> getMetric() {
 		return metric;
 	}
 
@@ -48,7 +45,7 @@ public class Event implements Serializable{
 		return this.ts;
 	}
 	
-	// timestamp wrapper 
+	// time stamp wrapper 
 	public class Timestamp {
 		
 		private final long ts;

@@ -1,26 +1,21 @@
 package com.opshack.jimi.sources;
 
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.IntrospectionException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +25,7 @@ import com.opshack.jimi.Metric;
 import com.opshack.jimi.writers.Writer;
 
 
-public abstract class Source implements Runnable{
+public abstract class Source {
 	
 	final private Logger log = LoggerFactory.getLogger(this.getClass());	
 	
@@ -38,134 +33,157 @@ public abstract class Source implements Runnable{
 	private int port;
 	private String username;
 	private String password;
-	private LinkedHashMap<String, Object> props;
+	private HashMap<String, Object> props;
 	private String propsMBean;
 	private List<String> metrics;
 	private String label;
 	
 	protected Jimi jimi;
+
+	public long totalBreakCount = 0;
+	public long breakCount = 0;
 	
-	private boolean broken = true;
-	private boolean definitlyBroken = true;
+	private SourceState state = SourceState.INIT;
 	
+	//protected JMXConnector jmxConnector;
 	protected MBeanServerConnection mbeanServerConnection;
 	
 	private HashSet <ScheduledFuture<?>> tasks = new HashSet<ScheduledFuture<?>>();
 	
-	public abstract void setMBeanServerConnection() throws InterruptedException;
 	
-	public MBeanServerConnection getMBeanServerConnection() {
-		return this.mbeanServerConnection;
-	}
+	public abstract boolean setMBeanServerConnection();
 	
-	public void run() {
-	
+	public void start() {
 			
-		for (String group: this.metrics) {
+		if (setMBeanServerConnection() && this.setPropertiesFromMBean()) {
+			this.setState(SourceState.CONNECTED);
+		} else {
+			this.setState(SourceState.BROKEN);
+		}
 
-			ArrayList<Map> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
-			if (metricDefs != null && metricDefs.size() > 0) {
+		if (this.getState().equals(SourceState.CONNECTED)) {
 
-				for (Map metricDef: metricDefs) {
-
-					if (this.isConnected() && !this.isBroken()) {				// 
-						
+			for (String group: this.metrics) {
+	
+				ArrayList<HashMap> metricDefs = (ArrayList) this.jimi.metricGroups.get(group);
+				if (metricDefs != null && metricDefs.size() > 0) {
+	
+					for (HashMap metricDef: metricDefs) {
+	
 						try {
-
-							Metric metric = new Metric(this, metricDef); 		// create JMX metric
-
-							this.tasks.add( 									// schedule JMX metric
-									this.jimi.taskExecutor.scheduleAtFixedRate(metric,
-											10,
-											Long.valueOf((Integer) metricDef.get("rate")), 
-											TimeUnit.SECONDS)
-									);
-
+								Metric metric = new Metric(this, metricDef); 		// create JMX metric
+								this.tasks.add( 									// schedule JMX metric
+										this.jimi.taskExecutor.scheduleAtFixedRate(metric,
+												0,
+												Long.valueOf((Integer) metricDef.get("rate")), 
+												TimeUnit.SECONDS)
+										);
+	
 						} catch (IOException e) { 								// if IO exception occurred
-
+	
+							this.setState(SourceState.BROKEN);
+	
 							log.warn(this + " IOException: " + e.getMessage()); // print warning message
-
+	
 							if (log.isDebugEnabled()) {
 								e.printStackTrace();
 							}
-
-							this.setBroken(true); 								// break the source
+	
 							break; 												// break the loop
-
+	
 						} catch (Exception e) { 								// if not an IO exception just skip metric creation
 							log.error(this + " non-IOException: " + e.getMessage());
 						}
-						
 					}
 				}
 			}
+			log.info(this + " metrics are scheduled");
 		}
-			
-			log.info(this + " tasks are initiated");
-		}
-	
-	public boolean init(Jimi jimi) {
+	}
+
+	public void init() {
 
 		this.setLabel();
-		this.jimi = jimi;
-		this.setBroken(false);
 		
-		try {
-			
-			setMBeanServerConnection(); 										// connect to source
-			
-			if (this.getPropsMBean() != null && !this.getPropsMBean().isEmpty()) {
-				this.setProperties();
-			}
-		
-		} catch (Exception e) { 												// if failed 
-			
-			if (log.isDebugEnabled()) {
-				e.printStackTrace();
-			}
-			
-			log.warn(this + " " + e.getMessage()); 								// print warning message
-			try {
-				
-				Thread.sleep(30000); 											// block thread for 30 seconds
-				
-			} catch (InterruptedException e1) {}								// do nothing, anyway it's going to exit
-			
-			this.setBroken(true);												// break the source
+		if (this.getProps() == null) {
+			this.setProps(new HashMap<String, Object>());	
 		}
 		
-		this.tasks = new HashSet<ScheduledFuture<?>>();
+		this.props.put("host", this.host);
+		this.props.put("port", Integer.toString(this.port));
+		this.props.put("label", this.label);
 
-		return !this.isBroken();
+		if (this.isOnline()) {
+			this.setState(SourceState.ONLINE);
+		} else {
+			this.setState(SourceState.OFFLINE);
+		}
+	}
+	
+	protected Boolean isOnline() {
+		
+		final Socket socket = new Socket();
+		try {
+			
+			socket.connect(new InetSocketAddress(host, port), 2000);
+			
+		} catch (Exception e) {
+			return false;
+			
+		} finally {
+			try {
+				socket.close();
+			} catch (Exception e) {
+				//Ignore
+			}
+		}
+		return true;
 	}
 	
 	
-	protected void setProperties() throws Exception {
+	public boolean setPropertiesFromMBean() {
 
-		ObjectName objectName = new ObjectName(this.getPropsMBean());
+		if (this.mbeanServerConnection != null 
+				&& this.getPropsMBean() != null 
+				&& !this.getPropsMBean().isEmpty() ) {
 
-		Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
+			try {
+				ObjectName objectName = new ObjectName(this.getPropsMBean());
+				Set<ObjectInstance> objectInstances = this.getMBeanServerConnection().queryMBeans(objectName, null);
 
-		if (objectInstances!= null && !objectInstances.isEmpty()) {
+				if (objectInstances!= null && !objectInstances.isEmpty()) {
 
-			for (ObjectInstance obj: objectInstances) {
+					for (ObjectInstance obj: objectInstances) {
 
-				log.info(this + " set properties from MBean: " + obj.getObjectName());
-				MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
+						synchronized(this) {
+							log.info(this + " set properties from " + obj.getObjectName());
+							MBeanAttributeInfo[] attributes = this.getMBeanServerConnection().getMBeanInfo(obj.getObjectName()).getAttributes();
 
-				for (MBeanAttributeInfo attribute: attributes) {
+							for (MBeanAttributeInfo attribute: attributes) {
 
-					String attributeName = attribute.getName();
-					Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+								String attributeName = attribute.getName();
+								Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
 
-					this.props.put(attributeName, value);
-					log.debug(this + " N " + attributeName + " = " + value);
+								this.props.put(attributeName, value);
+								log.debug(this + " set " + attributeName + " = " + value);
+								if (attributeName.equals("Name")) {
+									log.info(this + " mismatch check: " + value + " for " + this.host + ":" + this.port + 
+											"; obj count " + objectInstances.size());
+								}
+							}
+						}
+					}
 				}
-
-				break;
-			}
+			} catch (Exception e) {
+				
+				log.error(this + " " + e.getMessage() + " occurred during MBean properties setup");
+				if (log.isDebugEnabled()) {
+					e.printStackTrace();
+				}
+				return false;
+			} 
 		}
-
+		return true;
 	}
 
 	public void shutdown() {
@@ -176,18 +194,42 @@ public abstract class Source implements Runnable{
 				task.cancel(true);
 				log.debug(this + " task cancelation status is " + task.isCancelled());
 			}
+			
+			this.tasks = new HashSet<ScheduledFuture<?>>();
+			this.mbeanServerConnection = null;
 		}
-
-		this.mbeanServerConnection = null;
-		log.info(this + " tasks are canceled");
+		this.setState(SourceState.SHUTDOWN);
 	}
 	
-	public boolean isConnected() {
+	
+	public synchronized void setState(SourceState state) {
 		
-		if (this.mbeanServerConnection == null) {
-			return false;
+		if (state.equals(SourceState.BROKEN)) {
+			
+			if (this.state == SourceState.CONNECTING || this.state == SourceState.CONNECTED) {	
+				
+				++this.breakCount;
+				++this.totalBreakCount;
+				
+				if (this.breakCount >= 5) {
+					this.state = SourceState.OFFLINE;
+				} else {
+					this.state = state;
+				}
+				
+			} else {
+				log.error(this + " can't be broken when " + this.state);
+			}
+			
+		} else {
+			
+			if (state.equals(SourceState.CONNECTED)) {
+				this.breakCount = 0;
+			}
+			this.state = state;
 		}
-		return true;
+		
+		log.info(this + " state: " + this.getState());
 	}
 	
 	public String toString() {
@@ -196,6 +238,10 @@ public abstract class Source implements Runnable{
 	
 
 	// getters and setters, boring staff
+	public MBeanServerConnection getMBeanServerConnection() {
+		return this.mbeanServerConnection;
+	}
+	
 	public String getHost() {
 		return host;
 	}
@@ -231,20 +277,6 @@ public abstract class Source implements Runnable{
 		this.metrics = metrics;
 	}
 
-	public synchronized boolean isBroken() {
-		return broken;
-	}
-	public synchronized void setBroken(boolean broken) {
-		this.broken = broken;
-	}
-
-	public synchronized boolean isDefinitlyBroken() {
-		return definitlyBroken;
-	}
-	public synchronized void setDefinitlyBroken(boolean definitlyBroken) {
-		this.definitlyBroken = definitlyBroken;
-	}
-
 	public String getPropsMBean() {
 		return this.propsMBean;
 	}
@@ -253,15 +285,11 @@ public abstract class Source implements Runnable{
 		this.propsMBean = propsMBean;
 	}
 	
-	public LinkedHashMap<String, Object> getProps() {
+	public HashMap<String, Object> getProps() {
 		return this.props;
 	}
-	
-	public Object get(String property) {
-		return props.get(property);
-	}
 
-	public void setProps(LinkedHashMap<String, Object> props) {
+	public void setProps(HashMap<String, Object> props) {
 		this.props = props;
 	}
 
@@ -276,4 +304,17 @@ public abstract class Source implements Runnable{
 	public ArrayList<Writer> getWriters() {
 		return this.jimi.getWriters();
 	}
+	
+	public void setJimi(Jimi jimi) {
+		this.jimi = jimi;
+	}
+
+	public synchronized SourceState getState() {
+		return state;
+	}
+
+	public synchronized long getTotalBreakCount() {
+		return totalBreakCount;
+	}
+
 }
