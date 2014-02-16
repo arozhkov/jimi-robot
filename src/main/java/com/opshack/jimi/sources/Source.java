@@ -161,14 +161,18 @@ public abstract class Source {
 
 							for (MBeanAttributeInfo attribute: attributes) {
 
-								String attributeName = attribute.getName();
-								Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
-
-								this.props.put(attributeName, value);
-								log.debug(this + " set " + attributeName + " = " + value);
-								if (attributeName.equals("Name")) {
-									log.info(this + " mismatch check: " + value + " for " + this.host + ":" + this.port + 
-											"; obj count " + objectInstances.size());
+								try {
+									String attributeName = attribute.getName();
+									Object value = this.getMBeanServerConnection().getAttribute(obj.getObjectName(), attributeName);
+	
+									this.props.put(attributeName, value);
+									log.debug(this + " set " + attributeName + " = " + value);
+									if (attributeName.equals("Name")) {
+										log.info(this + " mismatch check: " + value + " for " + this.host + ":" + this.port + 
+												"; obj count " + objectInstances.size());
+									}
+								} catch (Exception e) {
+									log.warn(this + " Ignore an exception for " + attribute.getName());
 								}
 							}
 						}
