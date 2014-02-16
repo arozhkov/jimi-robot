@@ -256,8 +256,14 @@ public class Jimi {
 	
 	private static String compileConfigFile(String configFile) {
 		
+		File path = new File(configFile);
+		
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
+		
+		if (path.getParent() != null) {
+			ve.setProperty("file.resource.loader.path", path.getParent());
+		}
 		ve.init();
 		
 		Map<String, String> env = System.getenv();
@@ -269,7 +275,8 @@ public class Jimi {
 
 		try
 		{
-		   template = ve.getTemplate(configFile);
+		   	template = ve.getTemplate(path.getName());
+		   	
 		} catch(Exception e) {
 			System.out.println("Get configuration file template: " + e.getMessage());
 		}
@@ -307,7 +314,7 @@ public class Jimi {
 			String configuration = Jimi.compileConfigFile(args[0]);
 			
 			if (configuration == null || configuration.isEmpty()) {
-				throw new Exception("Empty configuration");
+				throw new Exception("Missing configuration in " + args[0]);
 			}
 			
 			log.info("Load configuration for " + System.getProperty("jimi.name"));
