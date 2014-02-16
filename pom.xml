@@ -4,7 +4,7 @@
 
 	<groupId>com.opshack</groupId>
 	<artifactId>jimi</artifactId>
-	<version>0.3.10</version>
+	<version>0.3.11</version>
 	<packaging>jar</packaging>
 
 	<name>jimi-robot</name>
