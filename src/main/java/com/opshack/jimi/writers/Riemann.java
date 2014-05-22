@@ -49,7 +49,7 @@ public class Riemann extends Writer {
 				service(service).
 				state(state).
 				time(event.getTs().getS()).
-				tags(tags).
+				tags(tags.split(" ")).
 				metric(new Double(event.getValue())).
 				ttl(this.getTtl()).
 				send();
@@ -76,6 +76,7 @@ public class Riemann extends Writer {
 			e.printStackTrace();
 			return false;
 		}
+		log.info("Riemann writer connected to " + this.riemannHost + ":" + this.riemannPort);
 		return true;
 	}
 
